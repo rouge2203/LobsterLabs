@@ -45,7 +45,7 @@ export default function DialogX({ open, setOpen }) {
                     </Dialog.Title>
                     <div className="mt-2">
                       <p className="text-sm font-geomanist text-gray-500">
-                        Escríbanos para consultar nuestros servicios y agendar
+                        Escríbenos para consultar nuestros servicios y agendar
                         una reunión para encontrar la mejor solución de software
                         para tu empresa.
                       </p>
