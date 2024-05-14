@@ -45,7 +45,7 @@ export default function DialogX({ open, setOpen }) {
                     </Dialog.Title>
                     <div className="mt-2">
                       <p className="text-sm font-geomanist text-gray-500">
-                        Escríbenos a para consultar nuestros servicios y agendar
+                        Escríbanos para consultar nuestros servicios y agendar
                         una reunión para encontrar la mejor solución de software
                         para tu empresa.
                       </p>
@@ -53,7 +53,7 @@ export default function DialogX({ open, setOpen }) {
                         <EnvelopeIcon className="h-5 w-5 hover:cursor-pointer hover:text-gray-300" />
                         <a
                           href="mailto:aruiz@lobsterlabs.net"
-                          className="hover:cursor-pointer hover:text-zinc-950 text-gray-500 font-geomanist text-sm"
+                          className="hover:cursor-pointer hover:underline hover:text-zinc-950 text-gray-500 font-geomanist text-sm"
                         >
                           aruiz@lobsterlabs.net
                         </a>
@@ -64,7 +64,7 @@ export default function DialogX({ open, setOpen }) {
                           href="https://wa.me/50687050594?text=Hola%20Lobster%20Labs,
                           "
                           target="_blank"
-                          className="hover:cursor-pointer hover:text-zinc-950 text-gray-500 font-geomanist text-sm"
+                          className="hover:cursor-pointer hover:underline hover:text-zinc-950 text-gray-500 font-geomanist text-sm"
                         >
                           +506 8705-0594
                         </a>

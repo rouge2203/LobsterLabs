@@ -114,7 +114,7 @@ function Landing() {
                 }}
               >
                 <button className="font-geomanist dark:text-zinc-300">
-                  Contáctenos
+                  Contáctanos
                 </button>
               </HoverBorderGradient>
             </div>
