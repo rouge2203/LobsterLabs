@@ -1,0 +1,13 @@
+/* Add this CSS to your global styles or component-specific styles */
+.scroll-snap-container {
+    scroll-snap-type: y mandatory; /* Enable vertical snapping */
+    overflow-y: scroll;
+    height: 100vh; /* Limit the height to the viewport */
+  }
+  
+  .scroll-snap-section {
+    scroll-snap-align: start; /* Align the snap at the start of the section */
+    height: 100vh; /* Each section should be the height of the viewport */
+    width: 100%; /* Full width */
+  }
+  
