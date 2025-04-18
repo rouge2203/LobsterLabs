@@ -34,6 +34,32 @@ function TournamentPage() {
     fetchTournamentData();
   }, [id]);
 
+  // Add score increment handlers
+  const incrementScoreTeamA = () => {
+    const currentScore = parseInt(scoreTeamA) || 0;
+    setScoreTeamA((currentScore + 1).toString());
+  };
+
+  const incrementScoreTeamB = () => {
+    const currentScore = parseInt(scoreTeamB) || 0;
+    setScoreTeamB((currentScore + 1).toString());
+  };
+
+  // Add score decrement handlers
+  const decrementScoreTeamA = () => {
+    const currentScore = parseInt(scoreTeamA) || 0;
+    if (currentScore > 0) {
+      setScoreTeamA((currentScore - 1).toString());
+    }
+  };
+
+  const decrementScoreTeamB = () => {
+    const currentScore = parseInt(scoreTeamB) || 0;
+    if (currentScore > 0) {
+      setScoreTeamB((currentScore - 1).toString());
+    }
+  };
+
   // Set up realtime subscriptions for live updates
   useEffect(() => {
     if (!id) return;
@@ -812,30 +838,58 @@ function TournamentPage() {
                         Registrar resultado
                       </h4>
                       <div className="grid grid-cols-5 gap-2 items-center">
-                        <div className="col-span-2">
+                        <div className="col-span-2 flex">
+                          <button
+                            onClick={decrementScoreTeamA}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-l-md border border-r-0"
+                            type="button"
+                          >
+                            -
+                          </button>
                           <input
                             type="number"
                             min="0"
                             value={scoreTeamA}
                             onChange={(e) => setScoreTeamA(e.target.value)}
-                            className="w-full p-2 border rounded-md text-center"
-                            placeholder="Marcador"
+                            className="w-full p-2 border text-center"
+                            placeholder="0"
                             inputmode="numeric"
                             pattern="[0-9]*"
                           />
+                          <button
+                            onClick={incrementScoreTeamA}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-r-md border border-l-0"
+                            type="button"
+                          >
+                            +
+                          </button>
                         </div>
                         <div className="text-center text-sm">-</div>
-                        <div className="col-span-2">
+                        <div className="col-span-2 flex">
+                          <button
+                            onClick={decrementScoreTeamB}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-l-md border border-r-0"
+                            type="button"
+                          >
+                            -
+                          </button>
                           <input
                             type="number"
                             min="0"
                             value={scoreTeamB}
                             onChange={(e) => setScoreTeamB(e.target.value)}
-                            className="w-full p-2 border rounded-md text-center"
-                            placeholder="Marcador"
+                            className="w-full p-2 border text-center"
+                            placeholder="0"
                             inputmode="numeric"
                             pattern="[0-9]*"
                           />
+                          <button
+                            onClick={incrementScoreTeamB}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-r-md border border-l-0"
+                            type="button"
+                          >
+                            +
+                          </button>
                         </div>
                       </div>
 
