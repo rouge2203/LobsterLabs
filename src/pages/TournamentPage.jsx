@@ -10,6 +10,7 @@ import {
   TrophyIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { MdSkipNext } from "react-icons/md";
 
 function TournamentPage() {
   const { id } = useParams();
@@ -26,6 +27,7 @@ function TournamentPage() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [finishDialogOpen, setFinishDialogOpen] = useState(false);
   const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
+  const [skipMatchDialogOpen, setSkipMatchDialogOpen] = useState(false);
   const [matchToUpdate, setMatchToUpdate] = useState(null);
   const [winnerTeam, setWinnerTeam] = useState(null);
   const [teamStats, setTeamStats] = useState([]);
@@ -516,6 +518,154 @@ function TournamentPage() {
     setConfirmDialogOpen(true);
   };
 
+  // Handle opening the skip match dialog
+  const handleSkipMatchClick = (match) => {
+    // Set the match to update with needed info
+    setMatchToUpdate({
+      id: match.id,
+      team_a_id: match.team_a_id,
+      team_b_id: match.team_b_id,
+      teamAName: getTeamName(match.team_a),
+      teamBName: getTeamName(match.team_b),
+    });
+
+    // Open the skip match dialog
+    setSkipMatchDialogOpen(true);
+  };
+
+  // Handle confirming the skip match action
+  const confirmSkipMatch = async () => {
+    if (!matchToUpdate) return;
+
+    try {
+      setUpdatingMatch(true);
+
+      // 1. Get tournament data to find the previous winner
+      const { data: tournamentData, error: tournamentError } = await supabase
+        .from("tournaments")
+        .select("id, current_winner_team_id")
+        .eq("id", id)
+        .single();
+
+      if (tournamentError) throw tournamentError;
+      const currentWinnerId = tournamentData.current_winner_team_id;
+
+      // 2. Determine team to put at the back of the queue (acts as the 'loser')
+      const loserTeamId = // Treat the non-winner as the loser for queue logic
+        matchToUpdate.team_a_id === currentWinnerId
+          ? matchToUpdate.team_b_id
+          : matchToUpdate.team_a_id;
+
+      // 3. Delete the match being skipped
+      const { error: deleteError } = await supabase
+        .from("matches")
+        .delete()
+        .eq("id", matchToUpdate.id);
+
+      if (deleteError) throw deleteError;
+
+      // --- Now replicate the queue logic from setMatchWinner ---
+
+      // 4. Get all teams for this tournament
+      const { data: allTeamsData, error: teamsError } = await supabase
+        .from("teams")
+        .select("id")
+        .eq("tournament_id", id);
+
+      if (teamsError) throw teamsError;
+      const allTeamIds = allTeamsData.map((t) => t.id);
+
+      // 5. Get recent completed matches (excluding the one we just deleted)
+      const { data: recentMatches, error: matchesError } = await supabase
+        .from("matches")
+        .select("team_a_id, team_b_id, winner_team_id, played_at")
+        .eq("tournament_id", id)
+        .not("played_at", "is", null) // Only completed matches
+        .order("played_at", { ascending: false }); // Most recent first
+
+      if (matchesError) throw matchesError;
+
+      // 6. Apply setMatchWinner queue logic:
+
+      // Get all available teams (excluding the current winner)
+      const availableTeamIds = allTeamIds.filter(
+        (teamId) => teamId !== currentWinnerId
+      );
+
+      // Get teams that have already played, ordered from most to least recent
+      const playedTeams = recentMatches.flatMap((m) => [
+        m.team_a_id,
+        m.team_b_id,
+      ]);
+      const playedTeamsUnique = [...new Set(playedTeams)];
+
+      // Remove the current winner from this list
+      const recentlyPlayedOpponents = playedTeamsUnique.filter(
+        (id) => id !== currentWinnerId
+      );
+
+      // Reorganize availableTeams to prioritize:
+      // 1. Teams that haven't played yet
+      // 2. Teams that played least recently
+      // 3. Always put the loser (teamToQueue) at the back
+
+      // First, remove the loser from available teams
+      const teamsWithoutLoser = availableTeamIds.filter(
+        (id) => id !== loserTeamId
+      );
+
+      // Sort teams by how recently they played (never played teams come first)
+      const sortedTeamIds = [
+        // Teams that haven't played (or played long ago)
+        ...teamsWithoutLoser.filter(
+          (id) => !recentlyPlayedOpponents.includes(id)
+        ),
+        // Teams that played recently, sorted by least recent first
+        ...teamsWithoutLoser
+          .filter((id) => recentlyPlayedOpponents.includes(id))
+          .sort((a, b) => {
+            // Lower index in recentlyPlayedOpponents means played more recently
+            // We want higher index (played less recently) first
+            return (
+              recentlyPlayedOpponents.indexOf(a) -
+              recentlyPlayedOpponents.indexOf(b)
+            );
+          }),
+      ];
+
+      // Add loser back at the end
+      // Only add if they are actually an available team (not the current winner)
+      if (availableTeamIds.includes(loserTeamId)) {
+        sortedTeamIds.push(loserTeamId);
+      }
+
+      // Get next opponent
+      const nextOpponent = sortedTeamIds.length > 0 ? sortedTeamIds[0] : null;
+
+      // 7. Create the new match
+      if (nextOpponent) {
+        // Use the count of matches BEFORE deletion + 1 for the new match order
+        const nextMatchOrder = (recentMatches?.length || 0) + 1;
+        await supabase.from("matches").insert({
+          team_a_id: currentWinnerId,
+          team_b_id: nextOpponent,
+          tournament_id: id,
+          match_order: nextMatchOrder,
+        });
+      }
+
+      // 8. Close dialog and refresh data
+      setSkipMatchDialogOpen(false);
+      setMatchToUpdate(null);
+      await fetchTournamentData(); // Fetch fresh data after updates
+    } catch (error) {
+      console.error("Error skipping match:", error);
+      setError("Error al saltar el partido.");
+    } finally {
+      setUpdatingMatch(false);
+    }
+  };
+
   const getTeamName = (team) => {
     if (!team) return "Equipo desconocido";
     if (!team.player1) return "Equipo desconocido";
@@ -903,6 +1053,14 @@ function TournamentPage() {
                             ? "Guardando..."
                             : "Registrar marcador"}
                         </button>
+
+                        <button
+                          onClick={() => handleSkipMatchClick(nextMatch)}
+                          disabled={updatingMatch}
+                          className="ml-auto mt-2 flex items-center justify-end py-2 px-4 hover:bg-gray-300 text-gray-700 rounded-md disabled:bg-gray-100 disabled:text-gray-400"
+                        >
+                          <MdSkipNext className="text-xl" /> Saltar Partido
+                        </button>
                       </div>
                     </div>
                   ) : (
@@ -1066,11 +1224,8 @@ function TournamentPage() {
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95">
               <div>
-                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-green-100">
-                  <CheckIcon
-                    aria-hidden="true"
-                    className="size-6 text-green-600"
-                  />
+                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-yellow-100">
+                  <CheckIcon className="size-6 text-yellow-600 " />
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
                   <Dialog.Title
@@ -1273,6 +1428,72 @@ function TournamentPage() {
                   className="inline-flex w-full justify-center rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800"
                 >
                   Entendido
+                </button>
+              </div>
+            </Dialog.Panel>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Skip Match Dialog */}
+      <Dialog
+        open={skipMatchDialogOpen}
+        onClose={() => setSkipMatchDialogOpen(false)}
+        className="relative z-10"
+      >
+        <Dialog.Backdrop className="fixed inset-0 bg-gray-500/75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in" />
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95">
+              <div>
+                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-yellow-100">
+                  <MdSkipNext className="size-6 text-yellow-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-5">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-base font-semibold text-gray-900"
+                  >
+                    Saltar partido
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    {matchToUpdate && (
+                      <div className="text-sm text-gray-500">
+                        <p className="mb-2">
+                          ¿Está seguro que desea saltar este partido?
+                        </p>
+                        <p className="font-medium mb-2">
+                          {matchToUpdate.teamAName} vs {matchToUpdate.teamBName}
+                        </p>
+                        <p className="text-xs mb-2">
+                          Este partido será eliminado sin declarar un ganador.
+                        </p>
+                        <p className="text-xs mb-2">
+                          El ganador del partido anterior continuará jugando y
+                          el otro equipo será el siguiente en la cola.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={confirmSkipMatch}
+                  disabled={updatingMatch}
+                  className="inline-flex w-full justify-center rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2 disabled:bg-gray-400"
+                >
+                  {updatingMatch ? "Procesando..." : "Saltar partido"}
+                </button>
+                <button
+                  type="button"
+                  data-autofocus
+                  onClick={() => setSkipMatchDialogOpen(false)}
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                >
+                  Cancelar
                 </button>
               </div>
             </Dialog.Panel>
