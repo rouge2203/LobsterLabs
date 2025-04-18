@@ -31,6 +31,9 @@ function TournamentPage() {
   const [matchToUpdate, setMatchToUpdate] = useState(null);
   const [winnerTeam, setWinnerTeam] = useState(null);
   const [teamStats, setTeamStats] = useState([]);
+  const [teamDetailsDialogOpen, setTeamDetailsDialogOpen] = useState(false);
+  const [selectedTeamStats, setSelectedTeamStats] = useState(null);
+  const [selectedTeamMatches, setSelectedTeamMatches] = useState([]);
 
   useEffect(() => {
     fetchTournamentData();
@@ -292,7 +295,10 @@ function TournamentPage() {
         wins: 0,
         losses: 0,
         matchesPlayed: 0,
+        goalsScored: 0,
+        goalsConceded: 0,
         consecutiveWins: 0,
+        maxConsecutiveWins: 0,
         lastMatchOrder: 0,
         lastResult: null, // 'win' or 'loss'
       });
@@ -300,56 +306,79 @@ function TournamentPage() {
 
     // Sort matches by match_order to process them chronologically
     const sortedMatches = [...matchesData].sort(
-      (a, b) => a.match_order - b.match_order
+      (a, b) => (a.match_order || 0) - (b.match_order || 0)
     );
 
     // Process each match to update stats
     sortedMatches.forEach((match) => {
-      // Skip matches that haven't been played
-      if (!match.winner_team_id) return;
+      // Skip matches that haven't been played or have special scores (like skipped)
+      if (!match.winner_team_id || match.score_team_a === 999) return;
 
-      // Get team IDs
+      // Get team IDs and scores
       const teamAId = match.team_a_id;
       const teamBId = match.team_b_id;
+      const scoreA = match.score_team_a || 0;
+      const scoreB = match.score_team_b || 0;
 
-      // Update winner stats
-      if (statsMap.has(match.winner_team_id)) {
-        const winnerStats = statsMap.get(match.winner_team_id);
-        winnerStats.wins += 1;
-        winnerStats.matchesPlayed += 1;
+      // Update stats for Team A
+      if (statsMap.has(teamAId)) {
+        const statsA = statsMap.get(teamAId);
+        statsA.matchesPlayed += 1;
+        statsA.goalsScored += scoreA;
+        statsA.goalsConceded += scoreB;
 
-        // Update consecutive wins
-        if (winnerStats.lastResult === "win") {
-          winnerStats.consecutiveWins += 1;
+        if (match.winner_team_id === teamAId) {
+          statsA.wins += 1;
+          statsA.consecutiveWins =
+            statsA.lastResult === "win" ? statsA.consecutiveWins + 1 : 1;
+          statsA.lastResult = "win";
         } else {
-          winnerStats.consecutiveWins = 1;
+          statsA.losses += 1;
+          statsA.consecutiveWins = 0;
+          statsA.lastResult = "loss";
         }
-
-        winnerStats.lastResult = "win";
-        winnerStats.lastMatchOrder = match.match_order;
-
-        statsMap.set(match.winner_team_id, winnerStats);
+        // Update max streak if current streak is higher
+        if (statsA.consecutiveWins > statsA.maxConsecutiveWins) {
+          statsA.maxConsecutiveWins = statsA.consecutiveWins;
+        }
+        statsA.lastMatchOrder = match.match_order;
+        statsMap.set(teamAId, statsA);
       }
 
-      // Update loser stats
-      const loserId = match.winner_team_id === teamAId ? teamBId : teamAId;
-      if (statsMap.has(loserId)) {
-        const loserStats = statsMap.get(loserId);
-        loserStats.losses += 1;
-        loserStats.matchesPlayed += 1;
-        loserStats.consecutiveWins = 0;
-        loserStats.lastResult = "loss";
-        loserStats.lastMatchOrder = match.match_order;
+      // Update stats for Team B
+      if (statsMap.has(teamBId)) {
+        const statsB = statsMap.get(teamBId);
+        statsB.matchesPlayed += 1;
+        statsB.goalsScored += scoreB;
+        statsB.goalsConceded += scoreA;
 
-        statsMap.set(loserId, loserStats);
+        if (match.winner_team_id === teamBId) {
+          statsB.wins += 1;
+          statsB.consecutiveWins =
+            statsB.lastResult === "win" ? statsB.consecutiveWins + 1 : 1;
+          statsB.lastResult = "win";
+        } else {
+          statsB.losses += 1;
+          statsB.consecutiveWins = 0;
+          statsB.lastResult = "loss";
+        }
+        // Update max streak if current streak is higher
+        if (statsB.consecutiveWins > statsB.maxConsecutiveWins) {
+          statsB.maxConsecutiveWins = statsB.consecutiveWins;
+        }
+        statsB.lastMatchOrder = match.match_order;
+        statsMap.set(teamBId, statsB);
       }
     });
 
-    // Convert map to array and sort by wins (descending)
+    // Convert map to array and sort by wins (descending), then goal difference
     const statsArray = Array.from(statsMap.values());
     statsArray.sort((a, b) => {
       if (b.wins !== a.wins) return b.wins - a.wins;
-      return a.losses - b.losses;
+      const goalDiffA = a.goalsScored - a.goalsConceded;
+      const goalDiffB = b.goalsScored - b.goalsConceded;
+      if (goalDiffB !== goalDiffA) return goalDiffB - goalDiffA;
+      return a.losses - b.losses; // Fewer losses is better if goal difference is same
     });
 
     return statsArray;
@@ -664,6 +693,30 @@ function TournamentPage() {
     } finally {
       setUpdatingMatch(false);
     }
+  };
+
+  // Handle click on a team row in the leaderboard
+  const handleTeamRowClick = (stat) => {
+    const teamId = stat.team.id;
+
+    // Filter matches for the selected team
+    const teamMatches = matches
+      .filter(
+        (match) =>
+          (match.team_a_id === teamId || match.team_b_id === teamId) &&
+          match.played_at // Only include played matches
+      )
+      .sort((a, b) => new Date(b.played_at) - new Date(a.played_at)); // Sort recent first
+
+    // Calculate form guide (last 5 matches: W/L)
+    const formGuide = teamMatches
+      .slice(0, 5) // Take the last 5
+      .map((match) => (match.winner_team_id === teamId ? "V" : "D")) // V for Victoria, D for Derrota
+      .reverse(); // Reverse to show oldest first (left-to-right)
+
+    setSelectedTeamStats(stat);
+    setSelectedTeamMatches(teamMatches);
+    setTeamDetailsDialogOpen(true);
   };
 
   const getTeamName = (team) => {
@@ -1107,11 +1160,11 @@ function TournamentPage() {
         {/* Teams Leaderboard */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Clasificación</h3>
-          <div className="overflow-hidden bg-white shadow sm:rounded-lg">
+          <div className="overflow-hidden bg-white shadow sm:rounded-lg overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-300">
               <thead>
                 <tr>
-                  <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
+                  <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 whitespace-nowrap">
                     Equipo
                   </th>
                   <th className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">
@@ -1120,14 +1173,24 @@ function TournamentPage() {
                   <th className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">
                     Partidos
                   </th>
-                  <th className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">
+                  <th className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 whitespace-nowrap">
                     % Victoria
+                  </th>
+                  <th className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">
+                    P+
+                  </th>
+                  <th className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">
+                    P-
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {teamStats.map((stat) => (
-                  <tr key={stat.team.id}>
+                  <tr
+                    key={stat.team.id}
+                    onClick={() => handleTeamRowClick(stat)}
+                    className="hover:bg-gray-50 cursor-pointer"
+                  >
                     <td className="py-4 pl-4 pr-3">
                       <div className="font-medium flex items-center">
                         {stat.team.player1.name}
@@ -1148,12 +1211,18 @@ function TournamentPage() {
                     <td className="px-3 py-4 text-center">
                       {stat.matchesPlayed}
                     </td>
-                    <td className="px-3 py-4 text-center">
+                    <td className="px-3 py-4 text-center whitespace-nowrap">
                       {stat.matchesPlayed > 0
                         ? `${Math.round(
                             (stat.wins / stat.matchesPlayed) * 100
                           )}%`
                         : "-"}
+                    </td>
+                    <td className="px-3 py-4 text-center">
+                      {stat.goalsScored}
+                    </td>
+                    <td className="px-3 py-4 text-center">
+                      {stat.goalsConceded}
                     </td>
                   </tr>
                 ))}
@@ -1414,8 +1483,8 @@ function TournamentPage() {
                         Sistema de puntuación
                       </h4>
                       <p>
-                        Los partidos se juegan a un solo set. El equipo con
-                        mayor puntuación gana el partido.
+                        El ganador del torneo será el equipo con más victorias o
+                        en caso de empate, el equipo con mejor % de victorias.
                       </p>
                     </div>
                   </div>
@@ -1496,6 +1565,207 @@ function TournamentPage() {
                   Cancelar
                 </button>
               </div>
+            </Dialog.Panel>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Team Details Dialog */}
+      <Dialog
+        open={teamDetailsDialogOpen}
+        onClose={() => setTeamDetailsDialogOpen(false)}
+        className="relative z-10"
+      >
+        <Dialog.Backdrop className="fixed w-screen inset-0 bg-gray-500/75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in" />
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-stretch justify-center p-0 text-center sm:items-center sm:p-4">
+            {/* Panel adjusted for full screen on mobile, standard on larger screens */}
+            <Dialog.Panel className="flex h-full w-full flex-col overflow-hidden bg-white text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:h-auto sm:max-w-lg sm:rounded-lg data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95">
+              {selectedTeamStats && (
+                <>
+                  {/* Dialog Header */}
+                  <div className="bg-gray-50 px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <Dialog.Title
+                        as="h3"
+                        className="text-base font-semibold text-gray-900"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="flex size-8 items-center justify-center rounded-full bg-yellow-100">
+                            <TbPlayVolleyball className="w-5 h-5 text-yellow-600" />
+                          </div>
+                          {getTeamName(selectedTeamStats.team)}
+                        </div>
+                      </Dialog.Title>
+                      <div className="ml-3 flex h-7 items-center">
+                        <button
+                          type="button"
+                          onClick={() => setTeamDetailsDialogOpen(false)}
+                          className="relative rounded-md bg-gray-50 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          <span className="absolute -inset-2.5" />
+                          <span className="sr-only">Close panel</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            className="h-6 w-6"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dialog Content */}
+                  <div className="flex-1 overflow-y-auto px-4 py-5 sm:p-6">
+                    <div className="mt-3 text-center sm:mt-0">
+                      <div className="mt-4">
+                        {/* Best Streak */}
+                        <div className="mb-4 text-center">
+                          <p className="text-sm font-medium text-gray-700">
+                            Mejor Racha:
+                          </p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {selectedTeamStats.maxConsecutiveWins || 0}
+                          </p>
+                        </div>
+                        {/* Form Guide */}
+                        <div className="mb-4">
+                          <p className="text-sm font-medium text-gray-700 mb-1">
+                            Forma (Últimos 5):
+                          </p>
+                          <div className="flex justify-center space-x-1">
+                            {selectedTeamMatches.length > 0 ? (
+                              selectedTeamMatches
+                                .slice(0, 5)
+                                .map((match) =>
+                                  match.winner_team_id ===
+                                  selectedTeamStats.team.id
+                                    ? "V"
+                                    : "D"
+                                )
+                                .reverse() // Show oldest first
+                                .map((result, index) => (
+                                  <span
+                                    key={index}
+                                    className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                                      result === "V"
+                                        ? "bg-green-200 text-green-800"
+                                        : "bg-red-200 text-red-800"
+                                    }`}
+                                  >
+                                    {result}
+                                  </span>
+                                ))
+                            ) : (
+                              <span className="text-sm text-gray-500 italic">
+                                No hay partidos jugados
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {/* Match List Table */}
+                        <div className="mt-6">
+                          <p className="text-sm font-medium text-gray-700 mb-2">
+                            Partidos Jugados:
+                          </p>
+                          {selectedTeamMatches.length > 0 ? (
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th
+                                      scope="col"
+                                      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    >
+                                      Oponente
+                                    </th>
+                                    <th
+                                      scope="col"
+                                      className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    >
+                                      Marcador
+                                    </th>
+                                    <th
+                                      scope="col"
+                                      className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    >
+                                      Resultado
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                  {selectedTeamMatches.map((match) => {
+                                    const isTeamA =
+                                      match.team_a_id ===
+                                      selectedTeamStats.team.id;
+                                    const opponentTeam = isTeamA
+                                      ? match.team_b
+                                      : match.team_a;
+                                    const opponentName =
+                                      getTeamName(opponentTeam);
+                                    const score = isTeamA
+                                      ? `${match.score_team_a} - ${match.score_team_b}`
+                                      : `${match.score_team_b} - ${match.score_team_a}`;
+                                    const result =
+                                      match.winner_team_id ===
+                                      selectedTeamStats.team.id
+                                        ? "Ganado"
+                                        : "Perdido";
+                                    const resultColor =
+                                      result === "Ganado"
+                                        ? "text-green-600"
+                                        : "text-red-600";
+                                    return (
+                                      <tr key={match.id}>
+                                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600">
+                                          vs {opponentName}
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-center">
+                                          {score}
+                                        </td>
+                                        <td
+                                          className={`px-3 py-2 whitespace-nowrap text-sm font-semibold text-center ${resultColor}`}
+                                        >
+                                          {result}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 italic text-center">
+                              No hay partidos jugados
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Dialog Footer */}
+                  <div className="border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6">
+                    <button
+                      type="button"
+                      onClick={() => setTeamDetailsDialogOpen(false)}
+                      className="inline-flex w-full justify-center rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </>
+              )}
             </Dialog.Panel>
           </div>
         </div>
