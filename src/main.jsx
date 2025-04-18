@@ -7,7 +7,11 @@ import Home from "./pages/Home.jsx";
 import Error404 from "./pages/Error404.jsx";
 import StickyDivs from "./pages/StickyDivs.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import LaTica from "./pages/LaTica.jsx";
+import SpikeBall from "./pages/SpikeBall.jsx";
+import NewTournament from "./pages/NewTournament.jsx";
+import SortTeams from "./pages/SortTeams.jsx";
+import Tournaments from "./pages/Tournaments.jsx";
+import TournamentPage from "./pages/TournamentPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -17,7 +21,11 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "sticky", element: <StickyDivs /> },
-      { path: "tica", element: <LaTica /> },
+      { path: "spikeball", element: <SpikeBall /> },
+      { path: "spikeball/new-tournament", element: <NewTournament /> },
+      { path: "spikeball/sort-teams", element: <SortTeams /> },
+      { path: "spikeball/tournaments", element: <Tournaments /> },
+      { path: "spikeball/tournaments/:id", element: <TournamentPage /> },
     ],
   },
 ]);
