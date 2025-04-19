@@ -9,6 +9,7 @@ import {
   CheckIcon,
   TrophyIcon,
   BookOpenIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { MdSkipNext } from "react-icons/md";
 
@@ -34,6 +35,11 @@ function TournamentPage() {
   const [teamDetailsDialogOpen, setTeamDetailsDialogOpen] = useState(false);
   const [selectedTeamStats, setSelectedTeamStats] = useState(null);
   const [selectedTeamMatches, setSelectedTeamMatches] = useState([]);
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [manualTeamA, setManualTeamA] = useState("");
+  const [manualTeamB, setManualTeamB] = useState("");
+  const [manualScoreA, setManualScoreA] = useState("");
+  const [manualScoreB, setManualScoreB] = useState("");
 
   useEffect(() => {
     fetchTournamentData();
@@ -920,6 +926,80 @@ function TournamentPage() {
     });
   };
 
+  const handleManualSubmit = async () => {
+    // Validate inputs
+    if (!manualTeamA || !manualTeamB) {
+      alert("Por favor seleccione ambos equipos.");
+      return;
+    }
+
+    if (manualTeamA === manualTeamB) {
+      alert("Por favor seleccione dos equipos diferentes.");
+      return;
+    }
+
+    const scoreA = parseInt(manualScoreA) || 0;
+    const scoreB = parseInt(manualScoreB) || 0;
+
+    if (scoreA === scoreB) {
+      alert(
+        "El marcador no puede ser un empate. Por favor ajuste el resultado."
+      );
+      return;
+    }
+
+    if (scoreA < 0 || scoreB < 0) {
+      alert("Los puntajes no pueden ser negativos.");
+      return;
+    }
+
+    try {
+      setUpdatingMatch(true);
+
+      // Determine winner
+      const winnerTeamId = scoreA > scoreB ? manualTeamA : manualTeamB;
+
+      // Create a new match directly with the result
+      const { data: newMatch, error: createError } = await supabase
+        .from("matches")
+        .insert({
+          tournament_id: id,
+          team_a_id: manualTeamA,
+          team_b_id: manualTeamB,
+          score_team_a: scoreA,
+          score_team_b: scoreB,
+          winner_team_id: winnerTeamId,
+          played_at: new Date().toISOString(),
+          match_order: matches.length + 1,
+        })
+        .select();
+
+      if (createError) throw createError;
+
+      // Reset form
+      setManualTeamA("");
+      setManualTeamB("");
+      setManualScoreA("");
+      setManualScoreB("");
+
+      // Update current winner in tournament
+      await supabase
+        .from("tournaments")
+        .update({
+          current_winner_team_id: winnerTeamId,
+        })
+        .eq("id", id);
+
+      // Refresh data
+      await fetchTournamentData();
+    } catch (error) {
+      console.error("Error creating manual match:", error);
+      setError("Error al registrar el partido manual.");
+    } finally {
+      setUpdatingMatch(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-white min-h-screen p-8 flex flex-col items-center justify-center">
@@ -986,174 +1066,363 @@ function TournamentPage() {
         {isTournamentActive && (
           <>
             {/* Tournament Controls */}
-            <div className="mb-8">
+            <div className="mb-8  flex flex-col sm:flex-row sm:justify-start sm:items-center gap-4">
               <button
                 onClick={handleFinishTournament}
-                className="rounded-md bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500"
+                className="rounded-md bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 w-full sm:w-auto"
               >
                 Finalizar Torneo
               </button>
+
+              {/* Mode Toggle */}
+              <div className="flex items-center space-x-2 justify-center sm:justify-end">
+                <span
+                  className={`text-sm ${
+                    !isManualMode ? "font-bold" : "text-gray-500"
+                  }`}
+                >
+                  Modo Torneo
+                </span>
+                <button
+                  onClick={() => setIsManualMode(!isManualMode)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                    isManualMode ? "bg-black" : "bg-gray-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      isManualMode ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+                <span
+                  className={`text-sm ${
+                    isManualMode ? "font-bold" : "text-gray-500"
+                  }`}
+                >
+                  Registro Manual
+                </span>
+              </div>
             </div>
 
-            {/* Next Match Section */}
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4">Próximo Partido</h3>
-              {nextMatch ? (
-                <div className="bg-gray-50 p-6 rounded-lg shadow-sm border">
-                  <div className="grid grid-cols-3 gap-4 items-center text-center">
-                    <div>
-                      {nextMatch.team_a ? (
-                        <>
-                          <p className="font-semibold">
-                            {nextMatch.team_a.player1.name}
-                          </p>
-                          <p className="font-semibold">
-                            {nextMatch.team_a.player2?.name || ""}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="italic text-gray-500">
-                          Ganador partido anterior
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-xl font-bold">VS</div>
-                    <div>
-                      {nextMatch.team_b ? (
-                        <>
-                          <p className="font-semibold">
-                            {nextMatch.team_b.player1.name}
-                          </p>
-                          <p className="font-semibold">
-                            {nextMatch.team_b.player2?.name || ""}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="italic text-gray-500">Por determinar</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Match result input - only show when both teams are assigned */}
-                  {nextMatch.team_a && nextMatch.team_b ? (
-                    <div className="mt-6 pt-4 border-t border-gray-200">
-                      <h4 className="text-center font-medium mb-3">
-                        Registrar resultado
-                      </h4>
-                      <div className="grid grid-cols-5 gap-2 items-center">
-                        <div className="col-span-2 flex">
-                          <button
-                            onClick={decrementScoreTeamA}
-                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-l-md border border-r-0"
-                            type="button"
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            min="0"
-                            value={scoreTeamA}
-                            onChange={(e) => setScoreTeamA(e.target.value)}
-                            className="w-full p-2 border text-center"
-                            placeholder="0"
-                            inputmode="numeric"
-                            pattern="[0-9]*"
-                          />
-                          <button
-                            onClick={incrementScoreTeamA}
-                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-r-md border border-l-0"
-                            type="button"
-                          >
-                            +
-                          </button>
+            {!isManualMode ? (
+              <>
+                {/* Next Match Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4">
+                    Próximo Partido
+                  </h3>
+                  {nextMatch ? (
+                    <div className="bg-gray-50 p-6 rounded-lg shadow-sm border">
+                      <div className="grid grid-cols-3 gap-4 items-center text-center">
+                        <div>
+                          {nextMatch.team_a ? (
+                            <>
+                              <p className="font-semibold">
+                                {nextMatch.team_a.player1.name}
+                              </p>
+                              <p className="font-semibold">
+                                {nextMatch.team_a.player2?.name || ""}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="italic text-gray-500">
+                              Ganador partido anterior
+                            </p>
+                          )}
                         </div>
-                        <div className="text-center text-sm">-</div>
-                        <div className="col-span-2 flex">
-                          <button
-                            onClick={decrementScoreTeamB}
-                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-l-md border border-r-0"
-                            type="button"
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            min="0"
-                            value={scoreTeamB}
-                            onChange={(e) => setScoreTeamB(e.target.value)}
-                            className="w-full p-2 border text-center"
-                            placeholder="0"
-                            inputmode="numeric"
-                            pattern="[0-9]*"
-                          />
-                          <button
-                            onClick={incrementScoreTeamB}
-                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-r-md border border-l-0"
-                            type="button"
-                          >
-                            +
-                          </button>
+                        <div className="text-xl font-bold">VS</div>
+                        <div>
+                          {nextMatch.team_b ? (
+                            <>
+                              <p className="font-semibold">
+                                {nextMatch.team_b.player1.name}
+                              </p>
+                              <p className="font-semibold">
+                                {nextMatch.team_b.player2?.name || ""}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="italic text-gray-500">
+                              Por determinar
+                            </p>
+                          )}
                         </div>
                       </div>
 
-                      <div className="mt-4">
-                        <button
-                          onClick={() => handleScoreSubmit(nextMatch)}
-                          disabled={updatingMatch}
-                          className="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-md disabled:bg-gray-400"
-                        >
-                          {updatingMatch
-                            ? "Guardando..."
-                            : "Registrar marcador"}
-                        </button>
+                      {/* Match result input - only show when both teams are assigned */}
+                      {nextMatch.team_a && nextMatch.team_b ? (
+                        <div className="mt-6 pt-4 border-t border-gray-200">
+                          <h4 className="text-center font-medium mb-3">
+                            Registrar resultado
+                          </h4>
+                          <div className="grid grid-cols-5 gap-2 items-center">
+                            <div className="col-span-2 flex">
+                              <button
+                                onClick={decrementScoreTeamA}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-l-md border border-r-0"
+                                type="button"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min="0"
+                                value={scoreTeamA}
+                                onChange={(e) => setScoreTeamA(e.target.value)}
+                                className="w-full p-2 border text-center"
+                                placeholder="0"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                              />
+                              <button
+                                onClick={incrementScoreTeamA}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-r-md border border-l-0"
+                                type="button"
+                              >
+                                +
+                              </button>
+                            </div>
+                            <div className="text-center text-sm">-</div>
+                            <div className="col-span-2 flex">
+                              <button
+                                onClick={decrementScoreTeamB}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-l-md border border-r-0"
+                                type="button"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min="0"
+                                value={scoreTeamB}
+                                onChange={(e) => setScoreTeamB(e.target.value)}
+                                className="w-full p-2 border text-center"
+                                placeholder="0"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                              />
+                              <button
+                                onClick={incrementScoreTeamB}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-r-md border border-l-0"
+                                type="button"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
 
-                        <button
-                          onClick={() => handleSkipMatchClick(nextMatch)}
-                          disabled={updatingMatch}
-                          className="ml-auto mt-2 flex items-center justify-end py-2 px-4 hover:bg-gray-300 text-gray-700 rounded-md disabled:bg-gray-100 disabled:text-gray-400"
-                        >
-                          <MdSkipNext className="text-xl" /> Saltar Partido
-                        </button>
+                          <div className="mt-4">
+                            <button
+                              onClick={() => handleScoreSubmit(nextMatch)}
+                              disabled={updatingMatch}
+                              className="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-md disabled:bg-gray-400"
+                            >
+                              {updatingMatch
+                                ? "Guardando..."
+                                : "Registrar marcador"}
+                            </button>
+
+                            <button
+                              onClick={() => handleSkipMatchClick(nextMatch)}
+                              disabled={updatingMatch}
+                              className="ml-auto mt-2 flex items-center justify-end py-2 px-4 hover:bg-gray-300 text-gray-700 rounded-md disabled:bg-gray-100 disabled:text-gray-400"
+                            >
+                              <MdSkipNext className="text-xl" /> Saltar Partido
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-6 pt-4 border-t border-gray-200 text-center text-gray-500 italic">
+                          <p>
+                            Este partido está pendiente de asignación de equipos
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-center p-4 bg-gray-50 rounded-lg border">
+                      No hay partidos pendientes
+                    </p>
+                  )}
+                </div>
+
+                {/* On Deck Team Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4">
+                    Equipo En Espera
+                  </h3>
+                  {nextMatch && getOnDeckTeam() ? (
+                    <div className="bg-gray-50 p-4 rounded-lg shadow-sm border">
+                      <div className="text-center">
+                        <div className="text-sm text-gray-500 mb-2">
+                          Este equipo jugará contra el ganador del próximo
+                          partido
+                        </div>
+                        <div className="font-medium">
+                          <p>{getOnDeckTeam().player1.name} </p>
+                          <p>{getOnDeckTeam().player2?.name || ""}</p>
+                        </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-6 pt-4 border-t border-gray-200 text-center text-gray-500 italic">
-                      <p>
-                        Este partido está pendiente de asignación de equipos
-                      </p>
-                    </div>
+                    <p className="text-center p-4 bg-gray-50 rounded-lg border text-gray-500 italic">
+                      {matches.filter((m) => !m.winner_team_id).length > 1
+                        ? "Buscando próximo equipo..."
+                        : "No hay equipos en espera"}
+                    </p>
                   )}
                 </div>
-              ) : (
-                <p className="text-center p-4 bg-gray-50 rounded-lg border">
-                  No hay partidos pendientes
-                </p>
-              )}
-            </div>
-
-            {/* On Deck Team Section */}
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4">Equipo En Espera</h3>
-              {nextMatch && getOnDeckTeam() ? (
-                <div className="bg-gray-50 p-4 rounded-lg shadow-sm border">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-500 mb-2">
-                      Este equipo jugará contra el ganador del próximo partido
+              </>
+            ) : (
+              // Manual Mode UI
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4">
+                  Registro Manual de Partido
+                </h3>
+                <div className="bg-gray-50 p-6 rounded-lg shadow-sm border">
+                  <div className="grid grid-cols-5 gap-4 items-center">
+                    {/* Team A Selection */}
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Equipo 1
+                      </label>
+                      <div className="grid grid-cols-1">
+                        <select
+                          value={manualTeamA}
+                          onChange={(e) => setManualTeamA(e.target.value)}
+                          className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
+                        >
+                          <option value="">Seleccionar equipo</option>
+                          {teams.map((team) => (
+                            <option key={team.id} value={team.id}>
+                              {getTeamName(team)}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDownIcon
+                          aria-hidden="true"
+                          className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                        />
+                      </div>
                     </div>
-                    <div className="font-medium">
-                      <p>{getOnDeckTeam().player1.name} </p>
-                      <p>{getOnDeckTeam().player2?.name || ""}</p>
+
+                    <div className="text-center">
+                      <div className="text-xl font-bold">VS</div>
+                    </div>
+
+                    {/* Team B Selection */}
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Equipo 2
+                      </label>
+                      <div className="grid grid-cols-1">
+                        <select
+                          value={manualTeamB}
+                          onChange={(e) => setManualTeamB(e.target.value)}
+                          className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
+                        >
+                          <option value="">Seleccionar equipo</option>
+                          {teams.map((team) => (
+                            <option key={team.id} value={team.id}>
+                              {getTeamName(team)}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDownIcon
+                          aria-hidden="true"
+                          className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Score inputs */}
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <h4 className="text-center font-medium mb-3">Resultado</h4>
+                    <div className="grid grid-cols-5 gap-2 items-center">
+                      <div className="col-span-2 flex">
+                        <button
+                          onClick={() => {
+                            const current = parseInt(manualScoreA) || 0;
+                            if (current > 0)
+                              setManualScoreA((current - 1).toString());
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-l-md border border-r-0"
+                          type="button"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          min="0"
+                          value={manualScoreA}
+                          onChange={(e) => setManualScoreA(e.target.value)}
+                          className="w-full p-2 border text-center"
+                          placeholder="0"
+                          inputmode="numeric"
+                          pattern="[0-9]*"
+                        />
+                        <button
+                          onClick={() => {
+                            const current = parseInt(manualScoreA) || 0;
+                            setManualScoreA((current + 1).toString());
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-r-md border border-l-0"
+                          type="button"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="text-center text-sm">-</div>
+                      <div className="col-span-2 flex">
+                        <button
+                          onClick={() => {
+                            const current = parseInt(manualScoreB) || 0;
+                            if (current > 0)
+                              setManualScoreB((current - 1).toString());
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-l-md border border-r-0"
+                          type="button"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          min="0"
+                          value={manualScoreB}
+                          onChange={(e) => setManualScoreB(e.target.value)}
+                          className="w-full p-2 border text-center"
+                          placeholder="0"
+                          inputmode="numeric"
+                          pattern="[0-9]*"
+                        />
+                        <button
+                          onClick={() => {
+                            const current = parseInt(manualScoreB) || 0;
+                            setManualScoreB((current + 1).toString());
+                          }}
+                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 rounded-r-md border border-l-0"
+                          type="button"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <button
+                        onClick={handleManualSubmit}
+                        disabled={updatingMatch}
+                        className="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-md disabled:bg-gray-400"
+                      >
+                        {updatingMatch ? "Guardando..." : "Registrar Partido"}
+                      </button>
                     </div>
                   </div>
                 </div>
-              ) : (
-                <p className="text-center p-4 bg-gray-50 rounded-lg border text-gray-500 italic">
-                  {matches.filter((m) => !m.winner_team_id).length > 1
-                    ? "Buscando próximo equipo..."
-                    : "No hay equipos en espera"}
-                </p>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )}
 
