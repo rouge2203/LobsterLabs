@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { TbPlayVolleyball } from "react-icons/tb";
 import { GoTrophy } from "react-icons/go";
-import { GiPodiumWinner } from "react-icons/gi";
+import { GiPodiumWinner, GiWhistle } from "react-icons/gi";
 import { Dialog } from "@headlessui/react";
 import {
   CheckIcon,
@@ -12,6 +12,154 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { MdSkipNext } from "react-icons/md";
+
+// Create a simple beep generator function for fallback
+const generateBeep = () => {
+  // Try to create audio context
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return null;
+
+    const audioCtx = new AudioContext();
+    return () => {
+      try {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.type = "sine";
+        oscillator.frequency.value = 800; // higher pitch
+        gainNode.gain.value = 0.5;
+
+        oscillator.start();
+
+        // Stop after short duration
+        setTimeout(() => {
+          oscillator.stop();
+        }, 200);
+      } catch (e) {
+        console.error("WebAudio API error:", e);
+      }
+    };
+  } catch (e) {
+    console.error("AudioContext not supported:", e);
+    return null;
+  }
+};
+
+// Initialize beep function outside component
+const beep = generateBeep();
+
+// Create a soccer referee whistle sound generator
+const generateWhistle = () => {
+  // Try to create audio context
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return null;
+
+    let audioCtx = null;
+    let currentOscillators = [];
+    let currentGain = null;
+    let lfoNode = null;
+
+    // Start whistle sound
+    const generateWhistle = () => {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return null;
+
+        const audioCtx = new AudioContext();
+
+        return () => {
+          try {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.type = "square"; // more whistle-like
+            oscillator.frequency.setValueAtTime(1800, audioCtx.currentTime); // start high
+            oscillator.frequency.exponentialRampToValueAtTime(
+              900,
+              audioCtx.currentTime + 0.6
+            ); // go down smoothly
+
+            gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.5,
+              audioCtx.currentTime + 0.05
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioCtx.currentTime + 0.6
+            );
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.6);
+          } catch (e) {
+            console.error("WebAudio API error:", e);
+          }
+        };
+      } catch (e) {
+        console.error("AudioContext not supported:", e);
+        return null;
+      }
+    };
+
+    // Stop whistle sound
+    const stopWhistle = () => {
+      try {
+        // Stop all oscillators
+        if (currentOscillators.length > 0) {
+          currentOscillators.forEach((osc) => {
+            try {
+              osc.stop();
+            } catch (e) {
+              // Ignore errors during stop
+            }
+          });
+          currentOscillators = [];
+        }
+
+        // Stop LFO if it exists
+        if (lfoNode) {
+          try {
+            lfoNode.stop();
+          } catch (e) {
+            // Ignore errors during stop
+          }
+          lfoNode = null;
+        }
+
+        // Disconnect gain node
+        if (currentGain) {
+          try {
+            currentGain.disconnect();
+          } catch (e) {
+            // Ignore errors during disconnect
+          }
+          currentGain = null;
+        }
+      } catch (e) {
+        console.error("Error stopping whistle:", e);
+      }
+    };
+
+    return {
+      start: startWhistle,
+      stop: stopWhistle,
+    };
+  } catch (e) {
+    console.error("AudioContext not supported:", e);
+    return null;
+  }
+};
+
+// Initialize whistle functions outside component
+const whistle = generateWhistle();
 
 function TournamentPage() {
   const { id } = useParams();
@@ -1000,6 +1148,28 @@ function TournamentPage() {
     }
   };
 
+  const startWhistle = () => {
+    if (whistle) {
+      whistle.start();
+    } else {
+      // Fallback to MP3 (though this won't support hold-to-play)
+      try {
+        const audio = new Audio("/whistle.mp3");
+        audio.play().catch((error) => {
+          console.error("Error playing whistle sound:", error);
+        });
+      } catch (error) {
+        console.error("Failed to initialize or play whistle sound:", error);
+      }
+    }
+  };
+
+  const stopWhistle = () => {
+    if (whistle) {
+      whistle.stop();
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-white min-h-screen p-8 flex flex-col items-center justify-center">
@@ -1109,9 +1279,20 @@ function TournamentPage() {
               <>
                 {/* Next Match Section */}
                 <div className="mb-8">
-                  <h3 className="text-xl font-semibold mb-4">
-                    Próximo Partido
-                  </h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold">Próximo Partido</h3>
+                    <button
+                      onMouseDown={startWhistle}
+                      onMouseUp={stopWhistle}
+                      onMouseLeave={stopWhistle}
+                      onTouchStart={startWhistle}
+                      onTouchEnd={stopWhistle}
+                      className="p-2 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 active:bg-yellow-300"
+                      title="Sonar silbato (mantener presionado)"
+                    >
+                      <GiWhistle className="w-5 h-5" />
+                    </button>
+                  </div>
                   {nextMatch ? (
                     <div className="bg-gray-50 p-6 rounded-lg shadow-sm border">
                       <div className="grid grid-cols-3 gap-4 items-center text-center">
@@ -1172,7 +1353,7 @@ function TournamentPage() {
                                 onChange={(e) => setScoreTeamA(e.target.value)}
                                 className="w-full p-2 border text-center"
                                 placeholder="0"
-                                inputmode="numeric"
+                                inputMode="numeric"
                                 pattern="[0-9]*"
                               />
                               <button
@@ -1199,7 +1380,7 @@ function TournamentPage() {
                                 onChange={(e) => setScoreTeamB(e.target.value)}
                                 className="w-full p-2 border text-center"
                                 placeholder="0"
-                                inputmode="numeric"
+                                inputMode="numeric"
                                 pattern="[0-9]*"
                               />
                               <button
@@ -1277,9 +1458,22 @@ function TournamentPage() {
             ) : (
               // Manual Mode UI
               <div className="mb-8">
-                <h3 className="text-xl font-semibold mb-4">
-                  Registro Manual de Partido
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold">
+                    Registro Manual de Partido
+                  </h3>
+                  <button
+                    onMouseDown={startWhistle}
+                    onMouseUp={stopWhistle}
+                    onMouseLeave={stopWhistle}
+                    onTouchStart={startWhistle}
+                    onTouchEnd={stopWhistle}
+                    className="p-2 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 active:bg-yellow-300"
+                    title="Sonar silbato (mantener presionado)"
+                  >
+                    <GiWhistle className="w-5 h-5" />
+                  </button>
+                </div>
                 <div className="bg-gray-50 p-6 rounded-lg shadow-sm border">
                   <div className="grid grid-cols-5 gap-4 items-center">
                     {/* Team A Selection */}
@@ -1360,7 +1554,7 @@ function TournamentPage() {
                           onChange={(e) => setManualScoreA(e.target.value)}
                           className="w-full p-2 border text-center"
                           placeholder="0"
-                          inputmode="numeric"
+                          inputMode="numeric"
                           pattern="[0-9]*"
                         />
                         <button
@@ -1394,7 +1588,7 @@ function TournamentPage() {
                           onChange={(e) => setManualScoreB(e.target.value)}
                           className="w-full p-2 border text-center"
                           placeholder="0"
-                          inputmode="numeric"
+                          inputMode="numeric"
                           pattern="[0-9]*"
                         />
                         <button
