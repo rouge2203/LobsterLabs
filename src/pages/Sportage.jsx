@@ -23,19 +23,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Dialog } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/24/outline";
 
+// Import car images
+import Sportage1 from "../assets/cars/sportage1.png";
+import Sportage3 from "../assets/cars/sportage3.png";
+import Sportage4 from "../assets/cars/sportage4.png";
+import Sportage5 from "../assets/cars/sportage5.png";
+import Sportage6 from "../assets/cars/sportage6.png";
+import Sportage7 from "../assets/cars/sportage7.png";
+import Sportage8 from "../assets/cars/sportage8.png";
+import Sportage9 from "../assets/cars/sportage9.png";
+
 function Sportage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Use imported images instead of string paths
   const images = [
-    "/src/assets/cars/sportage4.HEIC",
-    "/src/assets/cars/sportage3.png",
-    "/src/assets/cars/sportage5.HEIC",
-    "/src/assets/cars/sportage6.HEIC",
-    "/src/assets/cars/sportage7.HEIC",
-    "/src/assets/cars/sportage8.HEIC",
-    "/src/assets/cars/sportage9.HEIC",
+    Sportage4,
+    Sportage3,
+    Sportage5,
+    Sportage6,
+    Sportage7,
+    Sportage8,
+    Sportage9,
   ];
 
+  // Fix the swipe direction logic
   const handleSwipe = (offset) => {
     if (offset.x > 0) {
       setCurrentImageIndex(
@@ -62,9 +75,6 @@ function Sportage() {
     window.open(whatsappLink, "_blank");
   };
 
-  // Calculate progress percentage based on current image
-  const progressWidth = `${((currentImageIndex + 1) / images.length) * 100}%`;
-
   // Navigation handlers for slider
   const goToPrevious = () => {
     setCurrentImageIndex(
@@ -75,6 +85,9 @@ function Sportage() {
   const goToNext = () => {
     setCurrentImageIndex((currentImageIndex + 1) % images.length);
   };
+
+  // Calculate progress percentage based on current image
+  const progressWidth = `${((currentImageIndex + 1) / images.length) * 100}%`;
 
   return (
     <div className="bg-white min-h-screen md:flex md:flex-col">
@@ -387,7 +400,7 @@ function Sportage() {
 
             <div className="px-4 pb-2 md:px-0">
               <img
-                src="/src/assets/cars/sportage1.png"
+                src={Sportage1}
                 alt="Kia Sportage"
                 className="w-full my-10 object-contain"
               />
