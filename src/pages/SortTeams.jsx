@@ -17,6 +17,8 @@ function SortTeams() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [tournamentModality, setTournamentModality] =
+    useState("winner-stays-on");
 
   useEffect(() => {
     // Check if tournament data is passed through location state
@@ -122,6 +124,26 @@ function SortTeams() {
     return null; // No duplicates or missing players found
   };
 
+  // Function to create league matches for a tournament
+  const createLeagueMatches = (tournamentId, teams) => {
+    const matches = [];
+    let matchOrder = 1;
+
+    // Generate matches for all teams against each other
+    for (let i = 0; i < teams.length; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        matches.push({
+          tournament_id: tournamentId,
+          team_a_id: teams[i].id,
+          team_b_id: teams[j].id,
+          match_order: matchOrder++,
+        });
+      }
+    }
+
+    return matches;
+  };
+
   const createTournamentInSupabase = async () => {
     try {
       setIsSubmitting(true);
@@ -132,6 +154,8 @@ function SortTeams() {
         .insert([
           {
             name: tournamentName,
+            // Store tournament mode - NULL for default mode, "Liga" for league
+            tournament_mode: tournamentModality === "league" ? "Liga" : null,
           },
         ])
         .select()
@@ -181,28 +205,39 @@ function SortTeams() {
 
       if (teamsError) throw teamsError;
 
-      // 4. Create matches
-      // For tournament bracket: First match is team 0 vs team 1, then winner vs team 2, etc.
-      const matchesToInsert = [];
+      // 4. Create matches based on tournament modality
+      if (tournamentModality === "winner-stays-on") {
+        // Original tournament mode: first match is team 0 vs team 1
+        const matchesToInsert = [];
 
-      if (teamsData.length >= 2) {
-        // First match: team 0 vs team 1
-        matchesToInsert.push({
-          team_a_id: teamsData[0].id,
-          team_b_id: teamsData[1].id,
-          tournament_id: tournamentId,
-          match_order: 1,
-        });
+        if (teamsData.length >= 2) {
+          // First match: team 0 vs team 1
+          matchesToInsert.push({
+            team_a_id: teamsData[0].id,
+            team_b_id: teamsData[1].id,
+            tournament_id: tournamentId,
+            match_order: 1,
+          });
+        }
 
-        // Only create the first match, let the queue system handle the rest
-      }
+        if (matchesToInsert.length > 0) {
+          const { error: matchesError } = await supabase
+            .from("matches")
+            .insert(matchesToInsert);
 
-      if (matchesToInsert.length > 0) {
-        const { error: matchesError } = await supabase
-          .from("matches")
-          .insert(matchesToInsert);
+          if (matchesError) throw matchesError;
+        }
+      } else if (tournamentModality === "league") {
+        // League mode: create matches for all teams vs each other
+        const leagueMatches = createLeagueMatches(tournamentId, teamsData);
 
-        if (matchesError) throw matchesError;
+        if (leagueMatches.length > 0) {
+          const { error: matchesError } = await supabase
+            .from("matches")
+            .insert(leagueMatches);
+
+          if (matchesError) throw matchesError;
+        }
       }
 
       // Redirect to the tournament page
@@ -312,6 +347,57 @@ function SortTeams() {
               ))}
             </div>
           ))}
+
+          {/* Tournament modality selector */}
+          <div className="mb-6">
+            <label className="block text-sm/6 font-medium text-gray-900 mb-2">
+              Modalidad del Torneo
+            </label>
+            <div className="relative mt-2">
+              <Listbox
+                value={tournamentModality}
+                onChange={setTournamentModality}
+              >
+                <Listbox.Button className="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pl-3 pr-2 text-left text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                  <span className="col-start-1 row-start-1 truncate pr-6">
+                    {tournamentModality === "winner-stays-on"
+                      ? "Ganador se queda"
+                      : "Liga (todos contra todos)"}
+                  </span>
+                  <ChevronUpDownIcon
+                    aria-hidden="true"
+                    className="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                  />
+                </Listbox.Button>
+
+                <Listbox.Options className="absolute z-50 mt-1 w-full bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none rounded-md">
+                  <Listbox.Option
+                    value="winner-stays-on"
+                    className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-black data-[focus]:text-white data-[focus]:outline-none"
+                  >
+                    <span className="block truncate font-normal group-data-[selected]:font-semibold">
+                      Ganador se queda
+                    </span>
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-[&:not([data-selected])]:hidden group-data-[focus]:text-white">
+                      <CheckIcon aria-hidden="true" className="size-5" />
+                    </span>
+                  </Listbox.Option>
+                  <Listbox.Option
+                    value="league"
+                    className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-black data-[focus]:text-white data-[focus]:outline-none"
+                  >
+                    <span className="block truncate font-normal group-data-[selected]:font-semibold">
+                      Liga (todos contra todos)
+                    </span>
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600 group-[&:not([data-selected])]:hidden group-data-[focus]:text-white">
+                      <CheckIcon aria-hidden="true" className="size-5" />
+                    </span>
+                  </Listbox.Option>
+                </Listbox.Options>
+              </Listbox>
+            </div>
+          </div>
+
           {error && (
             <div className="w-full max-w-md mb-4 p-3 bg-red-100 text-red-700 rounded-md">
               {error}
