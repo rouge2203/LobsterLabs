@@ -10,6 +10,7 @@ import {
   TrophyIcon,
   BookOpenIcon,
   ChevronDownIcon,
+  UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { MdSkipNext } from "react-icons/md";
 
@@ -190,6 +191,15 @@ function TournamentPage() {
   const [manualTeamB, setManualTeamB] = useState("");
   const [manualScoreA, setManualScoreA] = useState("");
   const [manualScoreB, setManualScoreB] = useState("");
+  // Add new state for playoffs dialog
+  const [playoffsDialogOpen, setPlayoffsDialogOpen] = useState(false);
+  const [playoffsWinnerTeam, setPlayoffsWinnerTeam] = useState(null);
+
+  // Add state for new team dialog
+  const [newTeamDialogOpen, setNewTeamDialogOpen] = useState(false);
+  const [player1Name, setPlayer1Name] = useState("");
+  const [player2Name, setPlayer2Name] = useState("");
+  const [creatingTeam, setCreatingTeam] = useState(false);
 
   // New state variables for League functionality
   const [pendingMatches, setPendingMatches] = useState([]);
@@ -198,6 +208,15 @@ function TournamentPage() {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [isCreatingNewRound, setIsCreatingNewRound] = useState(false);
   const [newRoundDialogOpen, setNewRoundDialogOpen] = useState(false);
+
+  // Add a new state variable for the selected team filter
+  const [selectedTeamFilter, setSelectedTeamFilter] = useState(null);
+
+  // Add a state variable for the completed matches filter
+  const [completedMatchesFilter, setCompletedMatchesFilter] = useState(null);
+
+  // Add the missing state variable near the other state variables (around line 156)
+  const [pendingMatchesFilter, setPendingMatchesFilter] = useState(null);
 
   useEffect(() => {
     fetchTournamentData();
@@ -687,10 +706,10 @@ function TournamentPage() {
 
   const getRecentCompletedMatches = () => {
     // Get all completed matches, sorted by most recent first
-    return matches
-      .filter((m) => m.winner_team_id)
-      .sort((a, b) => new Date(b.played_at) - new Date(a.played_at))
-      .slice(0, 5); // Only take the last 5 matches
+    return sortMatchesByRecent(matches.filter((m) => m.winner_team_id)).slice(
+      0,
+      5
+    ); // Only take the last 5 matches
   };
 
   const handleScoreSubmit = (match) => {
@@ -1204,8 +1223,14 @@ function TournamentPage() {
   // Handle selecting a match to update
   const handleSelectMatch = (match) => {
     setSelectedMatch(match);
-    setScoreTeamA(""); // Reset scores
-    setScoreTeamB("");
+    // Pre-populate scores for existing matches
+    if (match.played_at) {
+      setScoreTeamA(match.score_team_a.toString());
+      setScoreTeamB(match.score_team_b.toString());
+    } else {
+      setScoreTeamA(""); // Reset scores for new matches
+      setScoreTeamB("");
+    }
     setMatchDialogOpen(true);
   };
 
@@ -1246,7 +1271,7 @@ function TournamentPage() {
           winner_team_id: winnerTeamId,
           score_team_a: scoreA,
           score_team_b: scoreB,
-          played_at: new Date().toISOString(),
+          played_at: selectedMatch.played_at || new Date().toISOString(), // Keep existing timestamp if editing
         })
         .eq("id", selectedMatch.id);
 
@@ -1274,8 +1299,335 @@ function TournamentPage() {
   // const isTournamentActive = !tournament.winner_team_id;
   // const isLeagueMode = tournament.tournament_mode === "Liga";
 
-  // League UI render function
+  // Add a function to filter matches based on the selected team
+  const filterMatchesByTeam = (matches, teamId) => {
+    if (!teamId) return matches;
+    return matches.filter(
+      (match) => match.team_a_id === teamId || match.team_b_id === teamId
+    );
+  };
+
+  // Add a function to sort matches by most recent played_at timestamp
+  const sortMatchesByRecent = (matches) => {
+    return [...matches].sort(
+      (a, b) => new Date(b.played_at) - new Date(a.played_at)
+    );
+  };
+
+  const handlePlayoffsWinner = () => {
+    // Open the playoffs dialog
+    setPlayoffsWinnerTeam(null); // Reset selected winner
+    setPlayoffsDialogOpen(true);
+  };
+
+  const handleNewTeam = () => {
+    // Reset form fields and open dialog
+    setPlayer1Name("");
+    setPlayer2Name("");
+    setNewTeamDialogOpen(true);
+  };
+
+  const confirmPlayoffsWinner = async () => {
+    if (!playoffsWinnerTeam) return;
+
+    try {
+      setEndingTournament(true);
+
+      // Update tournament with winner
+      const { error: updateError } = await supabase
+        .from("tournaments")
+        .update({
+          winner_team_id: playoffsWinnerTeam,
+          ended_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+
+      // Close dialog and refresh data
+      setPlayoffsDialogOpen(false);
+      await fetchTournamentData();
+    } catch (error) {
+      console.error("Error ending tournament with playoffs winner:", error);
+      setError("Error al finalizar el torneo con ganador de playoffs.");
+    } finally {
+      setEndingTournament(false);
+    }
+  };
+
+  // Function to create a new round of league matches
+  const createNewLeagueRound = async () => {
+    try {
+      setIsCreatingNewRound(true);
+
+      // Get the current highest match order
+      const maxOrder = matches.reduce(
+        (max, match) => (match.match_order > max ? match.match_order : max),
+        0
+      );
+
+      let matchOrder = maxOrder + 1;
+      const newMatches = [];
+
+      // Generate matches for all teams against each other
+      for (let i = 0; i < teams.length; i++) {
+        for (let j = i + 1; j < teams.length; j++) {
+          newMatches.push({
+            tournament_id: id,
+            team_a_id: teams[i].id,
+            team_b_id: teams[j].id,
+            match_order: matchOrder++,
+          });
+        }
+      }
+
+      // Insert new matches
+      if (newMatches.length > 0) {
+        const { error: matchesError } = await supabase
+          .from("matches")
+          .insert(newMatches);
+
+        if (matchesError) throw matchesError;
+      }
+
+      // Close dialog and refresh data
+      setNewRoundDialogOpen(false);
+      await fetchTournamentData();
+    } catch (error) {
+      console.error("Error creating new round:", error);
+      setError("Error al crear nueva ronda de partidos.");
+    } finally {
+      setIsCreatingNewRound(false);
+    }
+  };
+
+  // Add a function to sort the pendingMatches before displaying them
+  useEffect(() => {
+    // Sort pending matches when they change
+    if (pendingMatches.length > 1) {
+      const sortedMatches = sortMatchesForRest([...pendingMatches]);
+      setPendingMatches(sortedMatches);
+    }
+  }, [matches]); // Only re-sort when all matches change
+
+  // Function to sort matches so teams can rest between games
+  const sortMatchesForRest = (matches) => {
+    if (matches.length <= 1) return matches;
+
+    // Create a map to track how many times each team appears in pending matches
+    const teamOccurrences = new Map();
+
+    // Count team occurrences in pending matches
+    matches.forEach((match) => {
+      const teamAId = match.team_a_id;
+      const teamBId = match.team_b_id;
+
+      teamOccurrences.set(teamAId, (teamOccurrences.get(teamAId) || 0) + 1);
+      teamOccurrences.set(teamBId, (teamOccurrences.get(teamBId) || 0) + 1);
+    });
+
+    // Track which teams have already played in our sorted list
+    const recentlyPlayed = new Set();
+
+    // Resulting sorted array
+    const result = [];
+
+    // First match - teams with fewest total occurrences
+    let bestMatch = matches[0];
+    let bestScore = Number.MAX_SAFE_INTEGER;
+
+    matches.forEach((match) => {
+      const score =
+        teamOccurrences.get(match.team_a_id) +
+        teamOccurrences.get(match.team_b_id);
+      if (score < bestScore) {
+        bestScore = score;
+        bestMatch = match;
+      }
+    });
+
+    // Add first match to result
+    result.push(bestMatch);
+
+    // Mark teams as recently played
+    recentlyPlayed.add(bestMatch.team_a_id);
+    recentlyPlayed.add(bestMatch.team_b_id);
+
+    // Remove this match from available matches
+    const remainingMatches = matches.filter((m) => m.id !== bestMatch.id);
+
+    // Keep adding matches until we've used them all
+    while (remainingMatches.length > 0) {
+      // For each potential next match, calculate a score based on:
+      // 1. Whether its teams just played (avoid back-to-back games)
+      // 2. How many total games these teams have
+      const matchScores = remainingMatches.map((match) => {
+        const teamAId = match.team_a_id;
+        const teamBId = match.team_b_id;
+
+        // Add a large penalty if a team just played
+        const recentlyPlayedPenalty =
+          (recentlyPlayed.has(teamAId) ? 100 : 0) +
+          (recentlyPlayed.has(teamBId) ? 100 : 0);
+
+        // Add a smaller score based on how many total games these teams have
+        const occurenceScore =
+          teamOccurrences.get(teamAId) + teamOccurrences.get(teamBId);
+
+        return {
+          match,
+          score: recentlyPlayedPenalty + occurenceScore,
+        };
+      });
+
+      // Sort matches by score (lowest first = best)
+      matchScores.sort((a, b) => a.score - b.score);
+
+      // Pick the best match
+      const nextBest = matchScores[0].match;
+
+      // Add it to results
+      result.push(nextBest);
+
+      // Update recently played teams
+      // First, clear the recently played set if all teams have played
+      if (recentlyPlayed.size >= teamOccurrences.size) {
+        recentlyPlayed.clear();
+      }
+
+      // Add the teams from this match
+      recentlyPlayed.add(nextBest.team_a_id);
+      recentlyPlayed.add(nextBest.team_b_id);
+
+      // Remove from remaining
+      const idx = remainingMatches.findIndex((m) => m.id === nextBest.id);
+      remainingMatches.splice(idx, 1);
+    }
+
+    return result;
+  };
+
+  // Function to add a new team and create matches against existing teams
+  const handleAddNewTeam = async () => {
+    if (!player1Name.trim()) {
+      alert("Por favor ingrese al menos el nombre del primer jugador.");
+      return;
+    }
+
+    try {
+      setCreatingTeam(true);
+
+      // 1. Create or find players
+      let player1Id, player2Id;
+
+      // Handle player 1
+      const { data: p1, error: e1 } = await supabase
+        .from("players")
+        .select("id")
+        .eq("name", player1Name.trim())
+        .maybeSingle();
+
+      if (e1 && e1.code !== "PGRST116") throw e1;
+
+      if (p1) {
+        player1Id = p1.id;
+      } else {
+        const { data: newP1, error: ne1 } = await supabase
+          .from("players")
+          .insert([{ name: player1Name.trim() }])
+          .select();
+        if (ne1) throw ne1;
+        player1Id = newP1[0].id;
+      }
+
+      // Handle optional player 2
+      if (player2Name.trim()) {
+        const { data: p2, error: e2 } = await supabase
+          .from("players")
+          .select("id")
+          .eq("name", player2Name.trim())
+          .maybeSingle();
+
+        if (e2 && e2.code !== "PGRST116") throw e2;
+
+        if (p2) {
+          player2Id = p2.id;
+        } else {
+          const { data: newP2, error: ne2 } = await supabase
+            .from("players")
+            .insert([{ name: player2Name.trim() }])
+            .select();
+          if (ne2) throw ne2;
+          player2Id = newP2[0].id;
+        }
+      }
+
+      // 2. Create the new team
+      const { data: newTeam, error: teamError } = await supabase
+        .from("teams")
+        .insert([
+          {
+            tournament_id: id,
+            player1_id: player1Id,
+            player2_id: player2Id || null,
+          },
+        ])
+        .select();
+
+      if (teamError) throw teamError;
+
+      // 3. Create matches against existing teams
+      const newTeamId = newTeam[0].id;
+      const otherTeams = teams.map((t) => t.id);
+
+      // Get the current highest match order
+      const maxOrder = matches.reduce(
+        (max, match) => (match.match_order > max ? match.match_order : max),
+        0
+      );
+
+      let matchOrder = maxOrder + 1;
+      const newMatches = [];
+
+      // Create matches against each existing team
+      otherTeams.forEach((teamId) => {
+        newMatches.push({
+          tournament_id: id,
+          team_a_id: newTeamId,
+          team_b_id: teamId,
+          match_order: matchOrder++,
+        });
+      });
+
+      // Insert all new matches
+      if (newMatches.length > 0) {
+        const { error: matchesError } = await supabase
+          .from("matches")
+          .insert(newMatches);
+
+        if (matchesError) throw matchesError;
+      }
+
+      // Close dialog and refresh data
+      setNewTeamDialogOpen(false);
+      await fetchTournamentData();
+    } catch (error) {
+      console.error("Error creating new team:", error);
+      alert("Error al crear el nuevo equipo: " + error.message);
+    } finally {
+      setCreatingTeam(false);
+    }
+  };
+
+  // Update the renderLeagueUI function to include the countPendingMatches function
   const renderLeagueUI = () => {
+    // Function to count pending matches for a team
+    const countPendingMatches = (teamId) => {
+      return pendingMatches.filter(
+        (match) => match.team_a_id === teamId || match.team_b_id === teamId
+      ).length;
+    };
+
     return (
       <>
         {/* Tournament Controls */}
@@ -1284,7 +1636,14 @@ function TournamentPage() {
             onClick={handleFinishTournament}
             className="rounded-md bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 w-full sm:w-auto"
           >
-            Finalizar Torneo
+            Ganador por Liga
+          </button>
+
+          <button
+            onClick={handlePlayoffsWinner}
+            className="rounded-md bg-purple-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 w-full sm:w-auto"
+          >
+            Ganador por Playoffs
           </button>
 
           <button
@@ -1293,6 +1652,16 @@ function TournamentPage() {
           >
             Crear nueva ronda
           </button>
+
+          {/* Add Team Button - Only show in league mode if tournament is active */}
+          {isTournamentActive && tournament.tournament_mode === "Liga" && (
+            <button
+              onClick={handleNewTeam}
+              className="rounded-md flex justify-center items-center   bg-green-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 w-full sm:w-auto"
+            >
+              <span className="flex items-center gap-1">Añadir Equipo</span>
+            </button>
+          )}
 
           {/* Mode Toggle */}
           <div className="flex items-center space-x-2 justify-center sm:justify-end">
@@ -1329,7 +1698,21 @@ function TournamentPage() {
           <>
             {/* Teams Leaderboard - Moved above the pending matches */}
             <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4">Clasificación</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold mb-0">Clasificación</h3>
+                <button
+                  onMouseDown={startWhistle}
+                  onMouseUp={stopWhistle}
+                  onMouseLeave={stopWhistle}
+                  onTouchStart={startWhistle}
+                  onTouchEnd={stopWhistle}
+                  className="p-2 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 active:bg-yellow-300"
+                  title="Sonar silbato (mantener presionado)"
+                >
+                  <GiWhistle className="w-5 h-5" />
+                </button>
+              </div>
+
               <div className="overflow-hidden bg-white shadow sm:rounded-lg overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead>
@@ -1405,21 +1788,62 @@ function TournamentPage() {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold">Partidos Pendientes</h3>
-                <button
-                  onMouseDown={startWhistle}
-                  onMouseUp={stopWhistle}
-                  onMouseLeave={stopWhistle}
-                  onTouchStart={startWhistle}
-                  onTouchEnd={stopWhistle}
-                  className="p-2 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 active:bg-yellow-300"
-                  title="Sonar silbato (mantener presionado)"
-                >
-                  <GiWhistle className="w-5 h-5" />
-                </button>
               </div>
+
+              {/* Team Filter Badges for Pending Matches */}
+              <div className="mb-4 flex flex-wrap gap-2">
+                <span
+                  className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${
+                    pendingMatchesFilter === null
+                      ? "bg-black text-white ring-1 ring-inset ring-black"
+                      : "bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-500/10 hover:bg-gray-200"
+                  }`}
+                  onClick={() => setPendingMatchesFilter(null)}
+                >
+                  Todos
+                  <span className="ml-1 inline-flex items-center justify-center w-4 h-4 text-[10px] bg-gray-700 text-white rounded-full">
+                    {pendingMatches.length}
+                  </span>
+                </span>
+                {teams
+                  .map((team) => {
+                    const count = countPendingMatches(team.id);
+                    return count > 0 ? (
+                      <span
+                        key={team.id}
+                        className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${
+                          pendingMatchesFilter === team.id
+                            ? "bg-black text-white ring-1 ring-inset ring-black"
+                            : "bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-500/10 hover:bg-gray-100"
+                        }`}
+                        onClick={() =>
+                          setPendingMatchesFilter(
+                            team.id === pendingMatchesFilter ? null : team.id
+                          )
+                        }
+                      >
+                        {getTeamName(team)}
+                        <span
+                          className={`ml-1 inline-flex items-center justify-center w-4 h-4 text-[10px] rounded-full ${
+                            pendingMatchesFilter === team.id
+                              ? "bg-white text-black"
+                              : "bg-gray-700 text-white"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </span>
+                    ) : null;
+                  })
+                  .filter(Boolean)}
+              </div>
+
               {pendingMatches.length > 0 ? (
                 <div className="space-y-4">
-                  {pendingMatches.map((match) => (
+                  {filterMatchesByTeam(
+                    pendingMatches,
+                    pendingMatchesFilter
+                  ).map((match) => (
                     <div
                       key={match.id}
                       className="bg-gray-50 p-4 rounded-lg shadow-sm border cursor-pointer hover:bg-gray-100"
@@ -1461,14 +1885,50 @@ function TournamentPage() {
                 <h3 className="text-xl font-semibold mb-4">
                   Partidos Completados
                 </h3>
+
+                {/* Team Filter Badges */}
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span
+                    className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${
+                      completedMatchesFilter === null
+                        ? "bg-black text-white ring-1 ring-inset ring-black"
+                        : "bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-500/10 hover:bg-gray-200"
+                    }`}
+                    onClick={() => setCompletedMatchesFilter(null)}
+                  >
+                    Todos
+                  </span>
+                  {teams.map((team) => (
+                    <span
+                      key={team.id}
+                      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium cursor-pointer ${
+                        completedMatchesFilter === team.id
+                          ? "bg-black text-white ring-1 ring-inset ring-black"
+                          : "bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-500/10 hover:bg-gray-100"
+                      }`}
+                      onClick={() =>
+                        setCompletedMatchesFilter(
+                          team.id === completedMatchesFilter ? null : team.id
+                        )
+                      }
+                    >
+                      {getTeamName(team)}
+                    </span>
+                  ))}
+                </div>
+
                 <div className="space-y-4">
-                  {completedMatches.map((match) => {
+                  {filterMatchesByTeam(
+                    sortMatchesByRecent(completedMatches),
+                    completedMatchesFilter
+                  ).map((match) => {
                     const winnerIsTeamA =
                       match.winner_team_id === match.team_a_id;
                     return (
                       <div
                         key={match.id}
-                        className="bg-gray-50 p-4 rounded-md shadow-sm border"
+                        className="bg-gray-50 p-4 rounded-md shadow-sm border cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSelectMatch(match)}
                       >
                         <div className="grid grid-cols-5 gap-2 items-center text-center">
                           <div
@@ -1672,158 +2132,6 @@ function TournamentPage() {
     );
   };
 
-  // Function to create a new round of league matches
-  const createNewLeagueRound = async () => {
-    try {
-      setIsCreatingNewRound(true);
-
-      // Get the current highest match order
-      const maxOrder = matches.reduce(
-        (max, match) => (match.match_order > max ? match.match_order : max),
-        0
-      );
-
-      let matchOrder = maxOrder + 1;
-      const newMatches = [];
-
-      // Generate matches for all teams against each other
-      for (let i = 0; i < teams.length; i++) {
-        for (let j = i + 1; j < teams.length; j++) {
-          newMatches.push({
-            tournament_id: id,
-            team_a_id: teams[i].id,
-            team_b_id: teams[j].id,
-            match_order: matchOrder++,
-          });
-        }
-      }
-
-      // Insert new matches
-      if (newMatches.length > 0) {
-        const { error: matchesError } = await supabase
-          .from("matches")
-          .insert(newMatches);
-
-        if (matchesError) throw matchesError;
-      }
-
-      // Close dialog and refresh data
-      setNewRoundDialogOpen(false);
-      await fetchTournamentData();
-    } catch (error) {
-      console.error("Error creating new round:", error);
-      setError("Error al crear nueva ronda de partidos.");
-    } finally {
-      setIsCreatingNewRound(false);
-    }
-  };
-
-  // Add a function to sort the pendingMatches before displaying them
-  useEffect(() => {
-    // Sort pending matches when they change
-    if (pendingMatches.length > 1) {
-      const sortedMatches = sortMatchesForRest([...pendingMatches]);
-      setPendingMatches(sortedMatches);
-    }
-  }, [matches]); // Only re-sort when all matches change
-
-  // Function to sort matches so teams can rest between games
-  const sortMatchesForRest = (matches) => {
-    if (matches.length <= 1) return matches;
-
-    // Create a map to track how many times each team appears in pending matches
-    const teamOccurrences = new Map();
-
-    // Count team occurrences in pending matches
-    matches.forEach((match) => {
-      const teamAId = match.team_a_id;
-      const teamBId = match.team_b_id;
-
-      teamOccurrences.set(teamAId, (teamOccurrences.get(teamAId) || 0) + 1);
-      teamOccurrences.set(teamBId, (teamOccurrences.get(teamBId) || 0) + 1);
-    });
-
-    // Track which teams have already played in our sorted list
-    const recentlyPlayed = new Set();
-
-    // Resulting sorted array
-    const result = [];
-
-    // First match - teams with fewest total occurrences
-    let bestMatch = matches[0];
-    let bestScore = Number.MAX_SAFE_INTEGER;
-
-    matches.forEach((match) => {
-      const score =
-        teamOccurrences.get(match.team_a_id) +
-        teamOccurrences.get(match.team_b_id);
-      if (score < bestScore) {
-        bestScore = score;
-        bestMatch = match;
-      }
-    });
-
-    // Add first match to result
-    result.push(bestMatch);
-
-    // Mark teams as recently played
-    recentlyPlayed.add(bestMatch.team_a_id);
-    recentlyPlayed.add(bestMatch.team_b_id);
-
-    // Remove this match from available matches
-    const remainingMatches = matches.filter((m) => m.id !== bestMatch.id);
-
-    // Keep adding matches until we've used them all
-    while (remainingMatches.length > 0) {
-      // For each potential next match, calculate a score based on:
-      // 1. Whether its teams just played (avoid back-to-back games)
-      // 2. How many total games these teams have
-      const matchScores = remainingMatches.map((match) => {
-        const teamAId = match.team_a_id;
-        const teamBId = match.team_b_id;
-
-        // Add a large penalty if a team just played
-        const recentlyPlayedPenalty =
-          (recentlyPlayed.has(teamAId) ? 100 : 0) +
-          (recentlyPlayed.has(teamBId) ? 100 : 0);
-
-        // Add a smaller score based on how many total games these teams have
-        const occurenceScore =
-          teamOccurrences.get(teamAId) + teamOccurrences.get(teamBId);
-
-        return {
-          match,
-          score: recentlyPlayedPenalty + occurenceScore,
-        };
-      });
-
-      // Sort matches by score (lowest first = best)
-      matchScores.sort((a, b) => a.score - b.score);
-
-      // Pick the best match
-      const nextBest = matchScores[0].match;
-
-      // Add it to results
-      result.push(nextBest);
-
-      // Update recently played teams
-      // First, clear the recently played set if all teams have played
-      if (recentlyPlayed.size >= teamOccurrences.size) {
-        recentlyPlayed.clear();
-      }
-
-      // Add the teams from this match
-      recentlyPlayed.add(nextBest.team_a_id);
-      recentlyPlayed.add(nextBest.team_b_id);
-
-      // Remove from remaining
-      const idx = remainingMatches.findIndex((m) => m.id === nextBest.id);
-      remainingMatches.splice(idx, 1);
-    }
-
-    return result;
-  };
-
   if (loading) {
     return (
       <div className="bg-white min-h-screen p-8 flex flex-col items-center justify-center">
@@ -1857,7 +2165,12 @@ function TournamentPage() {
 
   return (
     <div className="bg-white min-h-screen p-8 flex flex-col items-center">
-      <h1 className="text-4xl font-bold flex items-center  gap-2">SpikeBall</h1>
+      <h1
+        className="text-4xl font-bold flex items-center gap-2 cursor-pointer"
+        onClick={() => navigate("/spikeball")}
+      >
+        SpikeBall
+      </h1>
 
       <div className="w-full max-w-3xl mt-8">
         <div className="flex items-center justify-between mb-6">
@@ -1900,7 +2213,14 @@ function TournamentPage() {
                   onClick={handleFinishTournament}
                   className="rounded-md bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 w-full sm:w-auto"
                 >
-                  Finalizar Torneo
+                  Ganador por Liga
+                </button>
+
+                <button
+                  onClick={handlePlayoffsWinner}
+                  className="rounded-md bg-purple-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 w-full sm:w-auto"
+                >
+                  Ganador por Playoffs
                 </button>
 
                 {/* Mode Toggle */}
@@ -2231,7 +2551,8 @@ function TournamentPage() {
                 return (
                   <div
                     key={match.id}
-                    className="bg-gray-50 p-4 rounded-md shadow-sm border"
+                    className="bg-gray-50 p-4 rounded-md shadow-sm border cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSelectMatch(match)}
                   >
                     <div className="grid grid-cols-5 gap-2 items-center text-center">
                       <div
@@ -2290,7 +2611,9 @@ function TournamentPage() {
                         as="h3"
                         className="text-base font-semibold text-gray-900"
                       >
-                        Registrar resultado
+                        {selectedMatch.played_at
+                          ? "Editar resultado"
+                          : "Registrar resultado"}
                       </Dialog.Title>
                       <div className="mt-2">
                         <div className="grid grid-cols-3 gap-4 items-center text-center">
@@ -2380,7 +2703,11 @@ function TournamentPage() {
                       disabled={updatingMatch}
                       className="inline-flex w-full justify-center rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2 disabled:bg-gray-400"
                     >
-                      {updatingMatch ? "Guardando..." : "Registrar resultado"}
+                      {updatingMatch
+                        ? "Guardando..."
+                        : selectedMatch.played_at
+                        ? "Actualizar resultado"
+                        : "Registrar resultado"}
                     </button>
                     <button
                       type="button"
@@ -2868,7 +3195,7 @@ function TournamentPage() {
                     as="h3"
                     className="text-base font-semibold text-gray-900"
                   >
-                    Finalizar torneo
+                    Ganador por Liga
                   </Dialog.Title>
                   <div className="mt-2">
                     {winnerTeam ? (
@@ -2945,6 +3272,180 @@ function TournamentPage() {
                     setFinishDialogOpen(false);
                     setWinnerTeam(null);
                   }}
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </Dialog.Panel>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Add new Playoffs Winner Dialog */}
+      <Dialog
+        open={playoffsDialogOpen}
+        onClose={() => setPlayoffsDialogOpen(false)}
+        className="relative z-10"
+      >
+        <Dialog.Backdrop className="fixed inset-0 bg-gray-500/75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in" />
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95">
+              <div>
+                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-purple-100">
+                  <GiPodiumWinner className="size-6 text-purple-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-5">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-base font-semibold text-gray-900"
+                  >
+                    Seleccionar ganador por playoffs
+                  </Dialog.Title>
+                  <div className="mt-4">
+                    <div className="text-sm text-gray-500">
+                      <p className="mb-4">
+                        Seleccione el equipo que ganó los playoffs:
+                      </p>
+                      <div className="py-2">
+                        <div className="grid grid-cols-1">
+                          <select
+                            value={playoffsWinnerTeam || ""}
+                            onChange={(e) =>
+                              setPlayoffsWinnerTeam(e.target.value)
+                            }
+                            className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
+                          >
+                            <option value="">Seleccionar equipo</option>
+                            {teams.map((team) => (
+                              <option key={team.id} value={team.id}>
+                                {getTeamName(team)}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDownIcon
+                            aria-hidden="true"
+                            className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+                          />
+                        </div>
+                      </div>
+                      <p className="mt-4 text-xs">
+                        Al seleccionar un ganador, se finalizará el torneo y no
+                        se podrán agregar más partidos.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={confirmPlayoffsWinner}
+                  disabled={endingTournament || !playoffsWinnerTeam}
+                  className="inline-flex w-full justify-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 sm:col-start-2 disabled:bg-gray-400"
+                >
+                  {endingTournament ? "Finalizando..." : "Confirmar ganador"}
+                </button>
+                <button
+                  type="button"
+                  data-autofocus
+                  onClick={() => setPlayoffsDialogOpen(false)}
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </Dialog.Panel>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Add New Team Dialog */}
+      <Dialog
+        open={newTeamDialogOpen}
+        onClose={() => setNewTeamDialogOpen(false)}
+        className="relative z-10"
+      >
+        <Dialog.Backdrop className="fixed inset-0 bg-gray-500/75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in" />
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95">
+              <div>
+                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-green-100">
+                  <UserPlusIcon className="size-6 text-green-600" />
+                </div>
+                <div className="mt-3 text-center sm:mt-5">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-base font-semibold text-gray-900"
+                  >
+                    Añadir nuevo equipo
+                  </Dialog.Title>
+                  <div className="mt-4">
+                    <div className="text-sm text-gray-500">
+                      <p className="mb-4">
+                        Ingrese los datos del nuevo equipo:
+                      </p>
+
+                      <div className="mt-6">
+                        <label
+                          htmlFor="player1"
+                          className="block text-sm font-medium text-gray-700 text-left mb-1"
+                        >
+                          Nombre del jugador 1 *
+                        </label>
+                        <input
+                          type="text"
+                          id="player1"
+                          value={player1Name}
+                          onChange={(e) => setPlayer1Name(e.target.value)}
+                          className="w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm"
+                          placeholder="Nombre del primer jugador"
+                          required
+                        />
+                      </div>
+
+                      <div className="mt-4">
+                        <label
+                          htmlFor="player2"
+                          className="block text-sm font-medium text-gray-700 text-left mb-1"
+                        >
+                          Nombre del jugador 2 (opcional)
+                        </label>
+                        <input
+                          type="text"
+                          id="player2"
+                          value={player2Name}
+                          onChange={(e) => setPlayer2Name(e.target.value)}
+                          className="w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm"
+                          placeholder="Nombre del segundo jugador (opcional)"
+                        />
+                      </div>
+
+                      <p className="mt-4 text-xs text-left">
+                        Se crearán partidos contra todos los equipos existentes
+                        automáticamente.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6 flex  sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={handleAddNewTeam}
+                  disabled={creatingTeam || !player1Name.trim()}
+                  className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 sm:col-start-2 disabled:bg-gray-400"
+                >
+                  {creatingTeam ? "Creando..." : "Añadir equipo"}
+                </button>
+                <button
+                  type="button"
+                  data-autofocus
+                  onClick={() => setNewTeamDialogOpen(false)}
                   className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
                 >
                   Cancelar
