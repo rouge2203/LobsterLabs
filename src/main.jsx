@@ -13,6 +13,7 @@ import SortTeams from "./pages/SortTeams.jsx";
 import Tournaments from "./pages/Tournaments.jsx";
 import TournamentPage from "./pages/TournamentPage.jsx";
 import Sportage from "./pages/Sportage.jsx";
+import Paypal from "./pages/Paypal.jsx";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: "spikeball/tournaments", element: <Tournaments /> },
       { path: "spikeball/tournaments/:id", element: <TournamentPage /> },
       { path: "buymycar/sportage2012-01", element: <Sportage /> },
+      { path: "paypal", element: <Paypal /> },
     ],
   },
 ]);
