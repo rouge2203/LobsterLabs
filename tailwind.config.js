@@ -25,6 +25,8 @@ module.exports = {
         varien: ["varien, sans-serif"],
         varienoutline: ["varienoutline, sans-serif"],
         inter: ["Inter", "sans-serif"],
+        "dm-sans": ["DM Sans", "sans-serif"],
+        "dm-serif": ["DM Serif Display", "serif"],
       },
       animation: {
         aurora: "aurora 60s linear infinite",

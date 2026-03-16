@@ -1,14 +1,21 @@
-import Hero from "../components/sections/Hero";
-import WhiteDiv from "../components/sections/WhiteDiv";
-import Landing from "../components/sections/Landing";
+import { motion } from "framer-motion";
+import { LanguageProvider } from "../components/i18n/LanguageContext";
+import { MainScreen } from "../components/MainScreen/MainScreen";
 
 const Home = () => {
   return (
-    <div className="flex flex-col ">
-      <Landing />
-      {/* <Hero /> */}
-      {/* <WhiteDiv /> */}
-    </div>
+    <LanguageProvider>
+      <div className="flex flex-col min-h-screen bg-white">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex-1"
+        >
+          <MainScreen />
+        </motion.div>
+      </div>
+    </LanguageProvider>
   );
 };
 
