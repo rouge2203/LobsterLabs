@@ -41,17 +41,17 @@ export function HamburgerMenu({
     onClose();
   };
 
-  if (!open) return null;
-
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ height: "auto", opacity: 1 }}
-        exit={{ height: 0, opacity: 0 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="bg-black overflow-hidden rounded-b-3xl flex-shrink-0"
-      >
+      {open && (
+        <motion.div
+          key="menu"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+          className="bg-black overflow-hidden rounded-b-3xl flex-shrink-0"
+        >
         <div className="border-b border-gray-800">
           <div className="flex items-center justify-between px-8 py-6">
             <img
@@ -138,7 +138,8 @@ export function HamburgerMenu({
             </div>
           </div>
         </div>
-      </motion.div>
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 }
