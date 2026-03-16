@@ -2,7 +2,6 @@ import { Canvas } from "@react-three/fiber";
 import {
   useGLTF,
   OrbitControls,
-  Environment,
   AdaptiveDpr,
   AdaptiveEvents,
 } from "@react-three/drei";
@@ -24,7 +23,6 @@ function MacViewerContent({ desktop = false, mobile = false }: { desktop?: boole
     <>
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 5, 5]} intensity={0.8} />
-      {!mobile && <Environment preset="studio" />}
       <MacModel scale={desktop ? 1.8 : mobile ? 1.93 : 1} />
       <OrbitControls
         enablePan={false}
@@ -56,7 +54,7 @@ export function MacViewer({ mobile = false, desktop = false }: { mobile?: boolea
       style={mobile ? undefined : { contain: "layout" }}
     >
       <Canvas
-        gl={{ alpha: true, preserveDrawingBuffer: true }}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         dpr={mobile ? [1, 1] : [1, 1.5]}
         camera={{ position: cameraPos as [number, number, number], fov }}
         style={{ background: "transparent" }}

@@ -53,11 +53,7 @@ export function TopBar({
             onClick={onLogoClick}
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
           >
-            <img
-              src="/lobsterlogo.png"
-              alt="Lobster Labs"
-              className="h-6"
-            />
+            <img src="/lobsterlogo.png" alt="Lobster Labs" className="h-6" />
           </button>
           <div className="flex items-center gap-1 flex-shrink-0">
             {showFlags && (

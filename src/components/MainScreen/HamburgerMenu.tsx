@@ -50,84 +50,86 @@ export function HamburgerMenu({
           transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
           className="bg-black overflow-hidden rounded-b-3xl flex-shrink-0"
         >
-        <div className="border-b border-gray-800">
-          <div className="flex items-center justify-between px-8 py-6">
-            <img
-              src="/lobsterlogo.png"
-              alt="Lobster Labs"
-              className="h-6 brightness-0 invert"
-            />
-            <div className="flex items-center gap-4">
-              {!mobile && (
+          <div className="border-b border-gray-800">
+            <div className="flex items-center justify-between px-8 py-6">
+              <img
+                src="/lobsterlogo.png"
+                alt="Lobster Labs"
+                className="h-6 invert brightness-0 "
+              />
+              <div className="flex items-center gap-4">
+                {!mobile && (
+                  <button
+                    type="button"
+                    onClick={handleContactClick}
+                    className="px-6 py-2.5 bg-white text-[#801818] font-inter font-semibold rounded-full text-sm hover:opacity-90 transition-opacity shadow-sm"
+                  >
+                    {t.cta}
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={handleContactClick}
-                  className="px-6 py-2.5 bg-white text-black font-inter font-medium rounded-full text-sm hover:opacity-90 transition-opacity shadow-sm"
+                  onClick={onClose}
+                  className="w-10 h-10 flex items-center justify-center text-white hover:bg-gray-800 rounded-full transition-colors"
+                  aria-label="Close menu"
                 >
-                  {t.cta}
+                  <span className="text-2xl leading-none">×</span>
                 </button>
-              )}
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`grid border-b border-gray-800 ${mobile ? "grid-cols-1" : "grid-cols-2 [&>*:nth-child(3)]:border-b-0 [&>*:nth-child(4)]:border-b-0"}`}
+          >
+            {navItems.map((item) => (
               <button
+                key={item.id}
                 type="button"
-                onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center text-white hover:bg-gray-800 rounded-full transition-colors"
-                aria-label="Close menu"
+                onClick={() => handleNavItemClick(item.id)}
+                className={`py-12 px-8 text-left text-white font-inter font-medium text-lg hover:bg-[#F0EEEB] hover:text-black transition-colors border-b border-gray-800 ${!mobile ? "border-r even:border-r-0" : ""}`}
               >
-                <span className="text-2xl leading-none">×</span>
+                {item.label}
               </button>
-            </div>
+            ))}
           </div>
-        </div>
 
-        <div className={`grid border-b border-gray-800 ${mobile ? "grid-cols-1" : "grid-cols-2 [&>*:nth-child(3)]:border-b-0 [&>*:nth-child(4)]:border-b-0"}`}>
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => handleNavItemClick(item.id)}
-              className={`py-12 px-8 text-left text-white font-inter font-medium text-lg hover:bg-[#F0EEEB] hover:text-black transition-colors border-b border-gray-800 ${!mobile ? "border-r even:border-r-0" : ""}`}
+          <div
+            className={`grid border-b border-gray-800 ${mobile ? "grid-cols-1" : "grid-cols-2"}`}
+          >
+            <div
+              className={`py-8 px-8 ${!mobile ? "border-r border-gray-800" : ""}`}
             >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <div className={`grid border-b border-gray-800 ${mobile ? "grid-cols-1" : "grid-cols-2"}`}>
-          <div className={`py-8 px-8 ${!mobile ? "border-r border-gray-800" : ""}`}>
-            <h3 className="text-white/60 font-inter text-xs uppercase tracking-wider mb-4">
-              Our office
-            </h3>
-            <p className="text-white font-inter text-sm">
-              Costa Rica
-            </p>
-            <p className="text-white/80 font-inter text-sm mt-1">
-              San José
-            </p>
-          </div>
-          <div className="py-8 px-8">
-            <h3 className="text-white/60 font-inter text-xs uppercase tracking-wider mb-4">
-              Follow us
-            </h3>
-            <div className="flex gap-6">
-              <a
-                href="https://www.linkedin.com/in/alejandro-ruiz-a5622a278/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white font-inter text-sm hover:underline"
-              >
-                LinkedIn
-              </a>
-              <a
-                href="https://github.com/rouge2203"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white font-inter text-sm hover:underline"
-              >
-                GitHub
-              </a>
+              <h3 className="text-[#801818] font-inter text-xs uppercase tracking-wider mb-4">
+                Our office
+              </h3>
+              <p className="text-white font-inter text-sm">Costa Rica</p>
+              <p className="text-white/80 font-inter text-sm mt-1">San José</p>
+            </div>
+            <div className="py-8 px-8">
+              <h3 className="text-[#801818] font-inter text-xs uppercase tracking-wider mb-4">
+                Follow us
+              </h3>
+              <div className="flex gap-6">
+                <a
+                  href="https://www.linkedin.com/in/alejandro-ruiz-a5622a278/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white font-inter text-sm hover:underline"
+                >
+                  LinkedIn
+                </a>
+                <a
+                  href="https://github.com/rouge2203"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white font-inter text-sm hover:underline"
+                >
+                  GitHub
+                </a>
+              </div>
             </div>
           </div>
-        </div>
         </motion.div>
       )}
     </AnimatePresence>
