@@ -13,15 +13,7 @@ export function DesktopDecorations() {
         className="absolute right-8 bottom-8 flex gap-6 text-[11px] font-inter tracking-[2px] text-gray-500"
       >
         <a
-          href="https://instagram.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-gray-900 transition-colors"
-        >
-          Instagram
-        </a>
-        <a
-          href="https://linkedin.com"
+          href="https://www.linkedin.com/in/alejandro-ruiz-a5622a278/"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:text-gray-900 transition-colors"
@@ -29,7 +21,7 @@ export function DesktopDecorations() {
           LinkedIn
         </a>
         <a
-          href="https://github.com"
+          href="https://github.com/rouge2203"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:text-gray-900 transition-colors"

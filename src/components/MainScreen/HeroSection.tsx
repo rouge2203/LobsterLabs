@@ -15,7 +15,7 @@ export function HeroSection({ desktop = false }: { desktop?: boolean }) {
         >
           {t.headline}
         </motion.h1>
-        <p className="text-sm font-inter text-gray-500 max-w-[250px] leading-none mt-6">
+        <p className="text-sm font-inter text-gray-500 max-w-[280px] leading-relaxed mt-6 tracking-wide">
           {t.subtitle}
         </p>
       </div>

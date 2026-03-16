@@ -68,6 +68,7 @@ export function MainScreen() {
             setDialogType(id);
             setDialogOpen(true);
           }}
+          onContactClick={() => handleCardClick("contact")}
           mobile={true}
         />
         <div className={`flex flex-col ${menuOpen ? "h-[100dvh] overflow-hidden" : "flex-1 overflow-hidden"}`}>
@@ -114,6 +115,7 @@ export function MainScreen() {
               setDialogType(id);
               setDialogOpen(true);
             }}
+            onContactClick={() => handleCardClick("contact")}
             mobile={false}
           />
           <div

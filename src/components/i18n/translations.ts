@@ -2,7 +2,7 @@ export const translations = {
   en: {
     headline: "Building the future, one line at a time",
     subtitle:
-      "We are a software studio that turns ideas into polished digital products",
+      "We like technology and design to be visually powerful, intellectually elegant, and above all timeless.",
     who: "Who are we?",
     whoLabel1: "Who",
     whoLabel2: "are we?",
@@ -20,31 +20,46 @@ export const translations = {
     whoBody2:
       "We specialize in semi-custom software, mobile and web applications, AI-powered solutions, and digital experiences designed to help companies modernize without losing what already makes them valuable.",
     whoPoint1Title: "Business Understanding",
-    whoPoint1Desc: "We go beyond programming. We study how each business operates so the software fits real workflows, teams, and goals.",
+    whoPoint1Desc:
+      "We go beyond programming. We study how each business operates so the software fits real workflows, teams, and goals.",
     whoPoint2Title: "Tailored Solutions",
-    whoPoint2Desc: "We adapt proven systems to the specific needs of each client, creating tailored solutions without starting from zero every time.",
+    whoPoint2Desc:
+      "We adapt proven systems to the specific needs of each client, creating tailored solutions without starting from zero every time.",
     whoPoint3Title: "Creative Technology",
-    whoPoint3Desc: "We believe software should work beautifully and look modern. Our products combine functionality, strong UI/UX, and a distinct visual identity.",
+    whoPoint3Desc:
+      "We believe software should work beautifully and look modern. Our products combine functionality, strong UI/UX, and a distinct visual identity.",
     whoPoint4Title: "Human + Modern Tech",
-    whoPoint4Desc: "We use current technologies like cloud infrastructure, AI integrations, and scalable systems, while keeping a close, personalized relationship with every client.",
+    whoPoint4Desc:
+      "We use current technologies like cloud infrastructure, AI integrations, and scalable systems, while keeping a close, personalized relationship with every client.",
     whoPoint5Title: "Built for Evolution",
-    whoPoint5Desc: "We help traditional and industrial businesses modernize their operations through software that makes change feel practical, not overwhelming.",
+    whoPoint5Desc:
+      "We help traditional and industrial businesses modernize their operations through software that makes change feel practical, not overwhelming.",
     whoPoint6Title: "Strategy + Execution",
-    whoPoint6Desc: "We don't just deliver an app and disappear. We connect software with branding, digital presence, and growth strategy through complementary creative services.",
+    whoPoint6Desc:
+      "We don't just deliver an app and disappear. We connect software with branding, digital presence, and growth strategy through complementary creative services.",
     projectsTitle: "Recent Projects",
     servicesTitle: "Our Services",
     service1: "Custom Software",
-    service1Desc: "Tailored platforms, dashboards, and internal tools built from scratch to fit your exact business needs.",
+    service1Desc:
+      "Tailored platforms, dashboards, and internal tools built from scratch to fit your exact business needs.",
     service2: "Mobile Experiences",
-    service2Desc: "Native and cross-platform apps designed for performance, usability, and seamless user engagement.",
+    service2Desc:
+      "Native and cross-platform apps designed for performance, usability, and seamless user engagement.",
     service3: "AI Automation",
-    service3Desc: "Intelligent workflows, predictive models, and conversational agents that streamline operations and decision-making.",
+    service3Desc:
+      "Intelligent workflows, predictive models, and conversational agents that streamline operations and decision-making.",
     service4: "3D Virtual Spaces",
-    service4Desc: "Immersive environments, product configurators, and interactive 3D experiences for web and mobile.",
+    service4Desc:
+      "Immersive environments, product configurators, and interactive 3D experiences for web and mobile.",
     service5: "Motion & Video Production",
-    service5Desc: "Branded animations, explainer videos, and cinematic content that tells your story with impact.",
+    service5Desc:
+      "Branded animations, explainer videos, and cinematic content that tells your story with impact.",
     service6: "Digital Product Design",
-    service6Desc: "End-to-end UI/UX design from research and wireframes to polished interfaces users love.",
+    service6Desc:
+      "End-to-end UI/UX design from research and wireframes to polished interfaces users love.",
+    servicesQuote: "Ideas don't come out fully formed. They only become clear as you work on them. You just have to get started.",
+    servicesQuoteAuthor: "Mark Zuckerberg",
+    servicesLetsStart: "Let's start today.",
     projectsIntro:
       "Lobster develops everything from mobile apps to websites, 3D animations, video productions, loyalty systems, credit systems, gas station integrations, AI integrations, reservation systems and more. As you can see below.",
     seeMore: "See more",
@@ -53,14 +68,22 @@ export const translations = {
     rating: "Rating",
     downloads: "Downloads",
     content: "Content",
-    app_ticaapp_short: "Mobile app for real-time service management and reservations with payment integration.",
-    app_ticaapp_full: "Mobile app for real-time service management and reservations with payment integration. Includes push notifications, transaction history, loyalty system with redeemable points, multi-language support, and admin panel for user management and advanced analytics.",
-    app_gascontrol_short: "Integrated system for gas stations with real-time inventory control and sales.",
-    app_gascontrol_full: "Integrated system for gas stations with real-time inventory control and sales. Tank monitoring, restocking alerts, POS integration, shift sales reports, employee management, and credit module for frequent customers with electronic invoicing.",
-    web_remus_short: "Corporate website for Remus ACR with product catalog and contact form.",
-    web_remus_full: "Corporate website for Remus ACR with product catalog and contact form. Includes responsive design, SEO optimization, social media integration, and admin panel for content management.",
-    web_costasolar_short: "Web platform for a solar energy company with online quoting and installation tracking.",
-    web_costasolar_full: "Web platform for a solar energy company with online quoting and installation tracking. Customer portal with energy generation monitoring, savings calculator, project gallery, and technical visit scheduling system.",
+    app_ticaapp_short:
+      "Mobile app for real-time service management and reservations with payment integration.",
+    app_ticaapp_full:
+      "Mobile app for real-time service management and reservations with payment integration. Includes push notifications, transaction history, loyalty system with redeemable points, multi-language support, and admin panel for user management and advanced analytics.",
+    app_gascontrol_short:
+      "Integrated system for gas stations with real-time inventory control and sales.",
+    app_gascontrol_full:
+      "Integrated system for gas stations with real-time inventory control and sales. Tank monitoring, restocking alerts, POS integration, shift sales reports, employee management, and credit module for frequent customers with electronic invoicing.",
+    web_remus_short:
+      "Corporate website for Remus ACR with product catalog and contact form.",
+    web_remus_full:
+      "Corporate website for Remus ACR with product catalog and contact form. Includes responsive design, SEO optimization, social media integration, and admin panel for content management.",
+    web_costasolar_short:
+      "Web platform for a solar energy company with online quoting and installation tracking.",
+    web_costasolar_full:
+      "Web platform for a solar energy company with online quoting and installation tracking. Customer portal with energy generation monitoring, savings calculator, project gallery, and technical visit scheduling system.",
     contactTitle: "Get in touch",
     contactEmail: "Email:",
     contactPhone: "Phone:",
@@ -78,7 +101,7 @@ export const translations = {
   es: {
     headline: "Construyendo el futuro, una línea a la vez",
     subtitle:
-      "Somos un estudio de software que transforma ideas en productos digitales pulidos",
+      "Nos gusta que la tecnología y el diseño sean visualmente poderosos, intelectualmente elegantes y, sobre todo, atemporales.",
     who: "¿Quiénes somos?",
     whoLabel1: "¿Quiénes",
     whoLabel2: "somos?",
@@ -96,31 +119,46 @@ export const translations = {
     whoBody2:
       "Nos especializamos en software semi-personalizado, aplicaciones móviles y web, soluciones impulsadas por IA y experiencias digitales diseñadas para ayudar a las empresas a modernizarse sin perder lo que ya las hace valiosas.",
     whoPoint1Title: "Entendemos Negocios",
-    whoPoint1Desc: "Vamos más allá de la programación. Estudiamos cómo opera cada negocio para que el software se ajuste a flujos de trabajo, equipos y objetivos reales.",
+    whoPoint1Desc:
+      "Vamos más allá de la programación. Estudiamos cómo opera cada negocio para que el software se ajuste a flujos de trabajo, equipos y objetivos reales.",
     whoPoint2Title: "Soluciones a la Medida",
-    whoPoint2Desc: "Adaptamos sistemas probados a las necesidades específicas de cada cliente, creando soluciones personalizadas sin empezar desde cero cada vez.",
+    whoPoint2Desc:
+      "Adaptamos sistemas probados a las necesidades específicas de cada cliente, creando soluciones personalizadas sin empezar desde cero cada vez.",
     whoPoint3Title: "Tecnología Creativa",
-    whoPoint3Desc: "Creemos que el software debe funcionar hermosamente y verse moderno. Nuestros productos combinan funcionalidad, UI/UX sólido y una identidad visual distintiva.",
+    whoPoint3Desc:
+      "Creemos que el software debe funcionar hermosamente y verse moderno. Nuestros productos combinan funcionalidad, UI/UX sólido y una identidad visual distintiva.",
     whoPoint4Title: "Tecnología + Calidez Humana",
-    whoPoint4Desc: "Usamos tecnologías actuales como infraestructura en la nube, integraciones de IA y sistemas escalables, manteniendo una relación cercana y personalizada con cada cliente.",
+    whoPoint4Desc:
+      "Usamos tecnologías actuales como infraestructura en la nube, integraciones de IA y sistemas escalables, manteniendo una relación cercana y personalizada con cada cliente.",
     whoPoint5Title: "Listos para Evolucionar",
-    whoPoint5Desc: "Ayudamos a empresas tradicionales e industriales a modernizar sus operaciones a través de software que hace que el cambio se sienta práctico, no abrumador.",
+    whoPoint5Desc:
+      "Ayudamos a empresas tradicionales e industriales a modernizar sus operaciones a través de software que hace que el cambio se sienta práctico, no abrumador.",
     whoPoint6Title: "Estrategia + Ejecución",
-    whoPoint6Desc: "No solo entregamos una app y desaparecemos. Conectamos el software con branding, presencia digital y estrategia de crecimiento a través de servicios creativos complementarios.",
+    whoPoint6Desc:
+      "No solo entregamos una app y desaparecemos. Conectamos el software con branding, presencia digital y estrategia de crecimiento a través de servicios creativos complementarios.",
     projectsTitle: "Proyectos Recientes",
     servicesTitle: "Nuestros Servicios",
     service1: "Software a la Medida",
-    service1Desc: "Plataformas, dashboards y herramientas internas desarrolladas desde cero para las necesidades exactas de tu negocio.",
+    service1Desc:
+      "Plataformas, dashboards y herramientas internas desarrolladas desde cero para las necesidades exactas de tu negocio.",
     service2: "Experiencias Móviles",
-    service2Desc: "Apps nativas y multiplataforma diseñadas para rendimiento, usabilidad y engagement del usuario.",
+    service2Desc:
+      "Apps nativas y multiplataforma diseñadas para rendimiento, usabilidad y engagement del usuario.",
     service3: "Automatización con IA",
-    service3Desc: "Flujos inteligentes, modelos predictivos y agentes conversacionales que optimizan operaciones y toma de decisiones.",
+    service3Desc:
+      "Flujos inteligentes, modelos predictivos y agentes conversacionales que optimizan operaciones y toma de decisiones.",
     service4: "Espacios Virtuales 3D",
-    service4Desc: "Entornos inmersivos, configuradores de productos y experiencias 3D interactivas para web y móvil.",
+    service4Desc:
+      "Entornos inmersivos, configuradores de productos y experiencias 3D interactivas para web y móvil.",
     service5: "Motion & Producción de Video",
-    service5Desc: "Animaciones de marca, videos explicativos y contenido cinematográfico que cuenta tu historia con impacto.",
+    service5Desc:
+      "Animaciones de marca, videos explicativos y contenido cinematográfico que cuenta tu historia con impacto.",
     service6: "Diseño de Producto Digital",
-    service6Desc: "Diseño UI/UX de principio a fin, desde investigación y wireframes hasta interfaces pulidas que los usuarios aman.",
+    service6Desc:
+      "Diseño UI/UX de principio a fin, desde investigación y wireframes hasta interfaces pulidas que los usuarios aman.",
+    servicesQuote: "Las ideas no salen completamente formadas. Solo se vuelven claras mientras trabajas en ellas. Solo tienes que empezar.",
+    servicesQuoteAuthor: "Mark Zuckerberg",
+    servicesLetsStart: "Empecemos hoy.",
     projectsIntro:
       "Lobster desarrolla desde aplicaciones móviles hasta sitios web, animaciones 3D, producciones de video, sistemas de lealtad, sistemas de crédito, sistemas integrados a estaciones de gasolineras, integraciones de AI, sistemas de reservaciones y más. Como podrán ver a continuación.",
     seeMore: "Ver más",
@@ -129,14 +167,22 @@ export const translations = {
     rating: "Rating",
     downloads: "Descargas",
     content: "Contenido",
-    app_ticaapp_short: "Aplicación móvil para gestión de servicios y reservaciones en tiempo real con integración de pagos.",
-    app_ticaapp_full: "Aplicación móvil para gestión de servicios y reservaciones en tiempo real con integración de pagos. Incluye notificaciones push, historial de transacciones, sistema de lealtad con puntos canjeables, soporte multilenguaje y panel de administración para gestión de usuarios y reportes analíticos avanzados.",
-    app_gascontrol_short: "Sistema integrado para estaciones de gasolineras con control de inventario y ventas en tiempo real.",
-    app_gascontrol_full: "Sistema integrado para estaciones de gasolineras con control de inventario y ventas en tiempo real. Monitoreo de tanques, alertas de reabastecimiento, integración con sistemas POS, reportes de ventas por turno, gestión de empleados y módulo de crédito para clientes frecuentes con facturación electrónica.",
-    web_remus_short: "Sitio web corporativo para Remus ACR con catálogo de productos y formulario de contacto.",
-    web_remus_full: "Sitio web corporativo para Remus ACR con catálogo de productos y formulario de contacto. Incluye diseño responsivo, optimización SEO, integración con redes sociales y panel de administración para gestión de contenido.",
-    web_costasolar_short: "Plataforma web para empresa de energía solar con cotizador en línea y seguimiento de instalaciones.",
-    web_costasolar_full: "Plataforma web para empresa de energía solar con cotizador en línea y seguimiento de instalaciones. Portal de clientes con monitoreo de generación energética, calculadora de ahorro, galería de proyectos y sistema de agendamiento de visitas técnicas.",
+    app_ticaapp_short:
+      "Aplicación móvil para gestión de servicios y reservaciones en tiempo real con integración de pagos.",
+    app_ticaapp_full:
+      "Aplicación móvil para gestión de servicios y reservaciones en tiempo real con integración de pagos. Incluye notificaciones push, historial de transacciones, sistema de lealtad con puntos canjeables, soporte multilenguaje y panel de administración para gestión de usuarios y reportes analíticos avanzados.",
+    app_gascontrol_short:
+      "Sistema integrado para estaciones de gasolineras con control de inventario y ventas en tiempo real.",
+    app_gascontrol_full:
+      "Sistema integrado para estaciones de gasolineras con control de inventario y ventas en tiempo real. Monitoreo de tanques, alertas de reabastecimiento, integración con sistemas POS, reportes de ventas por turno, gestión de empleados y módulo de crédito para clientes frecuentes con facturación electrónica.",
+    web_remus_short:
+      "Sitio web corporativo para Remus ACR con catálogo de productos y formulario de contacto.",
+    web_remus_full:
+      "Sitio web corporativo para Remus ACR con catálogo de productos y formulario de contacto. Incluye diseño responsivo, optimización SEO, integración con redes sociales y panel de administración para gestión de contenido.",
+    web_costasolar_short:
+      "Plataforma web para empresa de energía solar con cotizador en línea y seguimiento de instalaciones.",
+    web_costasolar_full:
+      "Plataforma web para empresa de energía solar con cotizador en línea y seguimiento de instalaciones. Portal de clientes con monitoreo de generación energética, calculadora de ahorro, galería de proyectos y sistema de agendamiento de visitas técnicas.",
     contactTitle: "Contáctenos",
     contactEmail: "Correo:",
     contactPhone: "Teléfono:",

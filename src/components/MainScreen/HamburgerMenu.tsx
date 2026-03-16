@@ -26,19 +26,17 @@ export function HamburgerMenu({
   ];
 
   const handleNavItemClick = (id: CardId | "contact") => {
+    onClose();
     if (id === "contact") {
       onContactClick?.();
-      window.location.href = "mailto:aruiz@lobsterlabs.net?subject=Contact%20Request&body=Hello%20Lobster%20Labs";
     } else {
       onNavClick(id);
     }
-    onClose();
   };
 
   const handleContactClick = () => {
-    onContactClick?.();
-    window.location.href = "mailto:aruiz@lobsterlabs.net?subject=Contact%20Request&body=Hello%20Lobster%20Labs";
     onClose();
+    onContactClick?.();
   };
 
   return (
@@ -112,15 +110,7 @@ export function HamburgerMenu({
             </h3>
             <div className="flex gap-6">
               <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white font-inter text-sm hover:underline"
-              >
-                Instagram
-              </a>
-              <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/alejandro-ruiz-a5622a278/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white font-inter text-sm hover:underline"
@@ -128,7 +118,7 @@ export function HamburgerMenu({
                 LinkedIn
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/rouge2203"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white font-inter text-sm hover:underline"
