@@ -190,89 +190,321 @@ function WhoContent() {
   );
 }
 
-type AppProject = {
-  kind: "app";
-  icon: string;
-  name: string;
-  shortDescKey: string;
-  fullDescKey: string;
-  rating: string;
-  downloads: string;
-  contentRating: string;
-  screenshots: string[];
+type ProjectType = "app" | "website" | "3d" | "system" | "video";
+
+type ProjectStats = {
+  rating: string | null;
+  reviews: string | null;
+  downloads: string | null;
+  content_rating: string | null;
+} | null;
+
+type ProjectItem = {
+  title: string;
+  type: ProjectType;
+  short_description_es: string;
+  short_description_en: string;
+  long_description_es: string;
+  long_description_en: string;
+  link: string | null;
+  stats: ProjectStats;
+  main_image: string;
+  children_images: string[];
 };
 
-type WebProject = {
-  kind: "web";
-  logo: string;
-  name: string;
-  url: string;
-  shortDescKey: string;
-  fullDescKey: string;
-  screenshots: string[];
-};
-
-type Project = AppProject | WebProject;
-
-const PROJECTS: Project[] = [
+const PROJECTS: ProjectItem[] = [
   {
-    kind: "app",
-    icon: "/ticaapp.png",
-    name: "TicaApp",
-    shortDescKey: "app_ticaapp_short",
-    fullDescKey: "app_ticaapp_full",
-    rating: "4.8",
-    downloads: "10K+",
-    contentRating: "Everyone",
-    screenshots: [
-      "https://play-lh.googleusercontent.com/qWx2zU1GcU6Xv0v-L2rH_FfusPQbuF_2v77t_g-vCY5iIjtSyiJFreAxmqgqCMNvSA=w5120-h2880",
-      "https://play-lh.googleusercontent.com/qWx2zU1GcU6Xv0v-L2rH_FfusPQbuF_2v77t_g-vCY5iIjtSyiJFreAxmqgqCMNvSA=w5120-h2880",
-      "https://play-lh.googleusercontent.com/qWx2zU1GcU6Xv0v-L2rH_FfusPQbuF_2v77t_g-vCY5iIjtSyiJFreAxmqgqCMNvSA=w5120-h2880",
-      "https://play-lh.googleusercontent.com/qWx2zU1GcU6Xv0v-L2rH_FfusPQbuF_2v77t_g-vCY5iIjtSyiJFreAxmqgqCMNvSA=w5120-h2880",
+    title: "Remusa App",
+    type: "app",
+    short_description_es:
+      "Aplicación móvil para clientes de Remusa con catálogo de productos, comunicación con vendedores y programa de lealtad con puntos y sorteos.",
+    short_description_en:
+      "Mobile app for Remusa customers featuring a product catalog, direct contact with sales representatives, and a loyalty program with points and giveaways.",
+    long_description_es:
+      "Aplicación móvil diseñada para los clientes de Remusa, donde pueden explorar el catálogo de productos disponible, comunicarse con vendedores y participar en un programa de lealtad. La plataforma permite acumular puntos por compras realizadas, los cuales pueden canjearse por premios, productos canjeables y participación en sorteos frecuentes organizados por la empresa.",
+    long_description_en:
+      "Mobile application built for Remusa customers, allowing them to browse the available product catalog, communicate with sales representatives, and participate in a loyalty program. Users can earn points through purchases and redeem them for prizes, redeemable items, and entries into recurring company giveaways.",
+    link: null,
+    stats: {
+      rating: null,
+      reviews: null,
+      downloads: "1K+",
+      content_rating: "Everyone",
+    },
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusaapp.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusaapp1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusaapp2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusaapp3.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusaapp4.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusaapp5.webp",
     ],
   },
   {
-    kind: "web",
-    logo: "https://remusacr.com/static/logo.png",
-    name: "Remus ACR",
-    url: "https://remusacr.com",
-    shortDescKey: "web_remus_short",
-    fullDescKey: "web_remus_full",
-    screenshots: [
-      "/screenshot.png",
-      "/screenshot.png",
-      "/screenshot.png",
-      "/screenshot.png",
+    title: "EMMC",
+    type: "website",
+    short_description_es:
+      "Portal académico y administrativo para la Escuela Municipal de Música de Cartago, con gestión de pagos, matrículas, tareas, evaluaciones y acceso para estudiantes, profesores y personal administrativo.",
+    short_description_en:
+      "Academic and administrative portal for the Escuela Municipal de Música de Cartago, featuring payments, enrollment management, assignments, evaluations, and role-based access for students, teachers, and administrators.",
+    long_description_es:
+      "Sitio web desarrollado para la Escuela Municipal de Música de Cartago que centraliza la gestión académica y administrativa de la institución. Permite al personal administrativo gestionar matrículas y pagos, mientras que estudiantes y profesores cuentan con accesos dedicados para seguimiento académico, asignación de tareas, evaluaciones y exámenes.",
+    long_description_en:
+      "Website developed for the Escuela Municipal de Música de Cartago, centralizing the institution’s academic and administrative processes. It enables administrative staff to manage enrollments and payments, while students and teachers have dedicated access for academic follow-up, assignments, evaluations, and exams.",
+    link: "https://emmcportal.com",
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/emmclogo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/emmclogo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/emmclogo2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/emmclogo3.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/emmclogo4.webp",
     ],
   },
   {
-    kind: "app",
-    icon: "/ticaapp.png",
-    name: "GasControl",
-    shortDescKey: "app_gascontrol_short",
-    fullDescKey: "app_gascontrol_full",
-    rating: "4.5",
-    downloads: "5K+",
-    contentRating: "Everyone",
-    screenshots: [
-      "https://play-lh.googleusercontent.com/qWx2zU1GcU6Xv0v-L2rH_FfusPQbuF_2v77t_g-vCY5iIjtSyiJFreAxmqgqCMNvSA=w5120-h2880",
-      "https://play-lh.googleusercontent.com/qWx2zU1GcU6Xv0v-L2rH_FfusPQbuF_2v77t_g-vCY5iIjtSyiJFreAxmqgqCMNvSA=w5120-h2880",
-      "https://play-lh.googleusercontent.com/qWx2zU1GcU6Xv0v-L2rH_FfusPQbuF_2v77t_g-vCY5iIjtSyiJFreAxmqgqCMNvSA=w5120-h2880",
-      "https://play-lh.googleusercontent.com/qWx2zU1GcU6Xv0v-L2rH_FfusPQbuF_2v77t_g-vCY5iIjtSyiJFreAxmqgqCMNvSA=w5120-h2880",
+    title: "Gracia Plus App",
+    type: "app",
+    short_description_es:
+      "Aplicación móvil para emisora de radio con transmisión en vivo, contenido multimedia, interacción con locutores y recursos espirituales como Biblia virtual, libros y oraciones guiadas.",
+    short_description_en:
+      "Mobile app for a radio station with live streaming, multimedia content, real-time interaction with hosts, and spiritual resources such as a virtual Bible, books, and guided prayers.",
+    long_description_es:
+      "Aplicación móvil desarrollada para una emisora de radio que permite escuchar la transmisión en vivo, consumir contenido actualizado, visualizar videos e interactuar con los locutores mediante mensajes. Además, integra funcionalidades complementarias como biblioteca de contenido, Biblia virtual y experiencias guiadas de oración mediante video y locución.",
+    long_description_en:
+      "Mobile application developed for a radio station, allowing users to listen to the live stream, access updated content, watch videos, and interact with radio hosts through messages. It also includes additional features such as a content library, a virtual Bible, and guided prayer experiences through video and voice narration.",
+    link: null,
+    stats: {
+      rating: "4.9",
+      reviews: "50+",
+      downloads: "3K+",
+      content_rating: "Everyone",
+    },
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/graciaapp.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/graciapp1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/graciapp2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/graciaapp3.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/graciapp4.webp",
     ],
   },
   {
-    kind: "web",
-    logo: "https://remusacr.com/static/logo.png",
-    name: "Costa Solar",
-    url: "https://costasolar.cr",
-    shortDescKey: "web_costasolar_short",
-    fullDescKey: "web_costasolar_full",
-    screenshots: [
-      "/screenshot.png",
-      "/screenshot.png",
-      "/screenshot.png",
-      "/screenshot.png",
+    title: "Fútbol Tello",
+    type: "website",
+    short_description_es:
+      "Sitio web de reservaciones para complejo deportivo con más de 5 canchas, gestión de pagos y administración operativa de reservas.",
+    short_description_en:
+      "Reservation website for a sports complex with more than 5 fields, featuring payment tracking and operational booking management.",
+    long_description_es:
+      "Sitio web para la gestión de reservaciones de un complejo deportivo en San José con más de 5 canchas. La plataforma permite a los clientes reservar espacios, mientras que el equipo administrativo puede registrar pagos, dar seguimiento a transferencias por SINPE Móvil y efectivo, y gestionar la operación diaria de las canchas. Además, los usuarios reciben notificaciones por WhatsApp y correo electrónico relacionadas con sus reservas.",
+    long_description_en:
+      "Booking website for a sports complex in San José with more than 5 fields. The platform allows customers to reserve spaces, while the administrative team can register payments, track transfers made through SINPE Móvil and cash, and manage the day-to-day operation of the facilities. Users also receive booking notifications through WhatsApp and email.",
+    link: "https://futboltello.com",
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/tellologo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/tellologo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/tellologo2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/tellologo3.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/tellologo4.webp",
+    ],
+  },
+  {
+    title: "La Tica App",
+    type: "app",
+    short_description_es:
+      "Aplicación móvil para estación de servicio con activación de facturas, participación en sorteos, notificaciones y panel administrativo para estadísticas y gestión promocional.",
+    short_description_en:
+      "Mobile app for a service station featuring invoice activation, giveaway participation, notifications, and an admin panel for analytics and promotional management.",
+    long_description_es:
+      "Aplicación móvil diseñada para una estación de servicio, enfocada en la participación de clientes en sorteos promocionales mediante la activación de facturas. Los usuarios pueden escanear o registrar sus facturas para generar acciones válidas dentro de sorteos, consultar precios de combustible, recibir notificaciones y gestionar activaciones manuales o automáticas mediante factura electrónica. El sistema también contempla flujos diferenciados para clientes de crédito y cuenta con una sección administrativa para monitorear estadísticas y desempeño de los sorteos.",
+    long_description_en:
+      "Mobile app designed for a service station, focused on customer participation in promotional giveaways through invoice activation. Users can scan or register invoices to generate valid entries for giveaways, check fuel prices, receive notifications, and manage both manual and automatic activations through electronic invoicing. The system also includes differentiated flows for credit customers and an administrative section for monitoring giveaway statistics and performance.",
+    link: null,
+    stats: {
+      rating: "4.9",
+      reviews: "40+",
+      downloads: "15K+",
+      content_rating: "Everyone",
+    },
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/ticaapp.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/ticaapp1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/ticaapp2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/ticaapp3.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/ticaapp4.webp",
+    ],
+  },
+  {
+    title: "Remusa",
+    type: "website",
+    short_description_es:
+      "Sitio web corporativo para Remusa con catálogo de productos, promociones, contacto comercial y acceso a herramientas avanzadas de búsqueda de repuestos.",
+    short_description_en:
+      "Corporate website for Remusa featuring a product catalog, promotions, sales contact, and access to advanced auto parts search tools.",
+    long_description_es:
+      "Sitio web corporativo desarrollado para Remusa, enfocado en presentar la empresa, su catálogo de productos, promociones y canales de contacto comercial. La plataforma también brinda acceso a funcionalidades clave como solicitudes de crédito, sistema de puntos canjeables y sorteos. Además, integra un panel administrativo con herramientas avanzadas, incluyendo un sistema asistido por inteligencia artificial para navegar por las partes de un vehículo y encontrar repuestos compatibles a nivel global mediante placa o VIN, permitiendo vincular disponibilidad internacional con inventario local y opciones de atención al cliente.",
+    long_description_en:
+      "Corporate website developed for Remusa, focused on showcasing the company, its product catalog, promotions, and commercial contact channels. The platform also provides access to key features such as credit requests, redeemable points, and giveaway systems. In addition, it includes an administrative panel with advanced tools, including an AI-assisted system to navigate vehicle parts and find globally compatible spare parts using a license plate or VIN, allowing agents to connect international availability with local inventory and customer service options.",
+    link: "https://remusacr.com",
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusalogo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusalogo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusalogo2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusalogo3.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusalogo4.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/remusalogo5.webp",
+    ],
+  },
+  {
+    title: "Gestión de Crédito Florida",
+    type: "website",
+    short_description_es:
+      "Sistema web de gestión de crédito para automatizar solicitudes, evaluaciones, aprobaciones jerárquicas y seguimiento interno del proceso crediticio.",
+    short_description_en:
+      "Web-based credit management system designed to automate applications, evaluations, hierarchical approvals, and internal credit workflow tracking.",
+    long_description_es:
+      "Sistema web orientado a la gestión de crédito, donde los clientes pueden realizar solicitudes y proporcionar información clave para su análisis, incluyendo referencias comerciales, imágenes del negocio y documentación relevante. La plataforma estructura el proceso de aprobación por etapas y jerarquías dentro del departamento de crédito, permitiendo revisiones por distintos responsables, envío de correos, notificaciones y trazabilidad completa del flujo de aprobación. El sistema centraliza un proceso crítico del negocio y mejora la eficiencia en la toma de decisiones crediticias.",
+    long_description_en:
+      "Web-based credit management system where customers can submit credit applications and provide key information for evaluation, including business images, commercial references, and relevant documentation. The platform structures the approval workflow in stages and hierarchies across the credit department, enabling reviews by different stakeholders, email delivery, notifications, and full traceability of the approval process. The system centralizes a critical business operation and improves efficiency in credit decision-making.",
+    link: null,
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/floridalogo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/floridalogo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/floridalogo2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/floridalogo3.webp",
+    ],
+  },
+  {
+    title: "FC Pro Soccer Tryouts",
+    type: "website",
+    short_description_es:
+      "Landing page optimizada para promocionar programas de pruebas de fútbol profesional en Costa Rica para jugadores internacionales.",
+    short_description_en:
+      "SEO-optimized landing page promoting professional soccer tryout programs in Costa Rica for international players.",
+    long_description_es:
+      "Sitio web promocional diseñado para presentar un programa en Costa Rica orientado a jugadores internacionales que buscan realizar pruebas con equipos profesionales de fútbol. La página destaca distintos paquetes de participación, con estancias de una semana o un mes, y comunica de forma clara la propuesta de valor del programa. Además, fue desarrollada con un enfoque visual atractivo y una estructura optimizada para campañas de Google Ads y posicionamiento en buscadores. Incluye formularios de contacto y una estrategia de comunicación por correo para compartir novedades sobre programas, clubes participantes y talentos emergentes.",
+    long_description_en:
+      "Promotional website designed to showcase a Costa Rica-based program for international players seeking tryouts with professional soccer teams. The page highlights different participation packages, including one-week and one-month options, and clearly communicates the value proposition of the program. It was also built with a visually engaging design and a structure optimized for Google Ads campaigns and search engine visibility. The site includes contact forms and email communication workflows to share updates about new programs, participating clubs, and emerging talent.",
+    link: "https://www.fcprosoccertryouts.com/",
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/fcprologo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/fcprologo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/fcprologo2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/fcprologo3.webp",
+    ],
+  },
+  {
+    title: "3D Set",
+    type: "3d",
+    short_description_es:
+      "Set virtual 3D personalizado para sorteos, diseñado para fortalecer marca, generar confianza y crear experiencias promocionales más atractivas.",
+    short_description_en:
+      "Custom 3D virtual set for giveaways, designed to strengthen brand identity, build trust, and create more engaging promotional experiences.",
+    long_description_es:
+      "Proyecto de integración 3D desarrollado para sistemas de sorteos y dinámicas promocionales. El set recrea una experiencia visual en la que es posible mostrar bolitas girando, números ganadores y nombres de participantes seleccionados, apoyando la transparencia y el impacto visual de cada rifa. Estos entornos son diseñados a medida para cada marca, permitiendo crear una identidad distintiva para sus campañas promocionales. La solución utiliza tecnologías como Three.js para construir experiencias únicas, modernas y altamente diferenciadoras dentro de los ecosistemas digitales de fidelización.",
+    long_description_en:
+      "3D integration project developed for giveaway systems and promotional dynamics. The set recreates a visual experience where spinning balls, winning numbers, and selected participant names can be displayed, supporting both transparency and visual impact during each drawing. These environments are custom-designed for each brand, helping create a distinctive identity for promotional campaigns. The solution uses technologies such as Three.js to build unique, modern, and highly differentiated experiences within digital loyalty ecosystems.",
+    link: null,
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/3dlogo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/3dlogo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/3dlogo2.webp",
+    ],
+  },
+  {
+    title: "Estaciones de Servicio",
+    type: "system",
+    short_description_es:
+      "Sistema inteligente para estaciones de servicio con visualización 3D, monitoreo de posiciones, atención por colaborador y control para reducir contaminaciones.",
+    short_description_en:
+      "Smart system for service stations featuring 3D visualization, position tracking, attendant monitoring, and controls aimed at reducing fuel contamination risks.",
+    long_description_es:
+      "Sistema diseñado para estaciones de servicio que combina información proveniente de cámaras y equipos operativos para identificar qué vehículos se encuentran en cada posición y cómo se desarrolla la atención en tiempo real. La solución genera una recreación 3D de la estación, permitiendo visualizar entradas y salidas de vehículos, colaboradores en atención y el tipo de combustible que se está despachando. Además de aportar una experiencia moderna y visualmente llamativa, el sistema ayuda a prevenir contaminaciones y mejora el control operativo dentro de la estación.",
+    long_description_en:
+      "System designed for service stations that combines information from cameras and operational equipment to identify which vehicles are located in each position and how service is being handled in real time. The solution creates a 3D recreation of the station, allowing teams to visualize vehicle entry and exit, the staff member providing service, and the type of fuel being dispensed. In addition to delivering a modern and visually striking experience, the system helps prevent contamination issues and improves operational control within the station.",
+    link: null,
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/cameralogo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/cameralogo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/cameralogo2.webp",
+    ],
+  },
+  {
+    title: "PuraVida FM",
+    type: "website",
+    short_description_es:
+      "Landing page para emisora de radio con promoción de programas, locutores, acceso a donaciones y presencia digital en constante actualización.",
+    short_description_en:
+      "Landing page for a radio station featuring programs, hosts, donation access, and a constantly updated digital presence.",
+    long_description_es:
+      "Sitio web tipo landing desarrollado para una emisora de radio, pensado para presentar de forma clara y atractiva su programación, locutores y propuesta general de contenido. La página funciona como punto central de promoción de la marca, permitiendo destacar programas, reforzar la identidad visual de la emisora y redireccionar a secciones clave como donaciones, pagos y dinámicas digitales. Además, está planteada para mantenerse en constante actualización, facilitando la incorporación de nuevos segmentos, campañas especiales, eventos y contenido promocional que mantenga viva la relación con la audiencia.",
+    long_description_en:
+      "Landing-style website developed for a radio station, designed to clearly and attractively showcase its programming, hosts, and overall content proposition. The page works as a central hub for brand promotion, allowing the station to highlight its shows, reinforce its visual identity, and redirect users to key areas such as donations, payments, and digital engagement initiatives. It is also built to remain constantly updated, making it easy to add new segments, special campaigns, events, and promotional content that keeps the audience engaged.",
+    link: null,
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/puravidalogo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/puravidalogo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/puravidalogo2.webp",
+    ],
+  },
+  {
+    title: "Producción de Video",
+    type: "video",
+    short_description_es:
+      "Producción de video promocional y tutorial con apoyo de inteligencia artificial, animaciones modernas y recursos visuales personalizados para cada marca.",
+    short_description_en:
+      "Promotional and tutorial video production powered by AI, featuring modern animations and custom visual assets for each brand.",
+    long_description_es:
+      "Proyecto enfocado en la producción de video para marcas, campañas y productos digitales. Incluye la creación de videos promocionales, tutoriales de uso y piezas visuales explicativas para que los clientes puedan comunicar mejor el valor de sus herramientas. También incorpora generación de video con apoyo de inteligencia artificial, incluyendo mascotas en 3D, animaciones cortas, recursos modernos y estilos visuales diferenciadores. Esta línea de trabajo permite complementar el desarrollo de software con materiales audiovisuales listos para mercadeo, onboarding y comunicación directa con usuarios finales.",
+    long_description_en:
+      "Project focused on video production for brands, campaigns, and digital products. It includes the creation of promotional videos, usage tutorials, and explanatory visual pieces that help clients better communicate the value of their tools. It also incorporates AI-assisted video generation, including 3D mascots, short animations, modern assets, and distinctive visual styles. This line of work complements software development with audiovisual material ready for marketing, onboarding, and direct communication with end users.",
+    link: null,
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/videologo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/videologo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/videologo2.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/videologo3.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/videologo4.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/videologo5.webp",
+    ],
+  },
+  {
+    title: "Gracia Plus",
+    type: "website",
+    short_description_es:
+      "Landing page moderna para promocionar la aplicación Gracia Plus y destacar sus principales funcionalidades y experiencia digital.",
+    short_description_en:
+      "Modern landing page designed to promote the Gracia Plus app and highlight its core features and digital experience.",
+    long_description_es:
+      "Sitio web moderno creado para promocionar la aplicación Gracia Plus y comunicar de forma visualmente atractiva sus principales funcionalidades. La página está pensada para reforzar la presencia digital del producto, presentar sus beneficios clave y servir como apoyo comercial y promocional para la aplicación. Su enfoque combina diseño actual, estructura clara y una presentación orientada a destacar la experiencia que ofrece la app a sus usuarios.",
+    long_description_en:
+      "Modern website created to promote the Gracia Plus app and visually showcase its main features. The page is designed to strengthen the product’s digital presence, present its key benefits, and serve as a commercial and promotional support channel for the application. Its approach combines contemporary design, clear structure, and a presentation focused on highlighting the experience the app delivers to its users.",
+    link: null,
+    stats: null,
+    main_image:
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/gracialogo.webp",
+    children_images: [
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/gracialogo1.webp",
+      "https://mafisa-group-assets.nyc3.cdn.digitaloceanspaces.com/lobsterlabs/gracialogo2.webp",
     ],
   },
 ];
@@ -306,11 +538,57 @@ function ScreenshotImage({
   );
 }
 
-function AppProjectCard({ project }: { project: AppProject }) {
+function ProjectCard({ project }: { project: ProjectItem }) {
   const [expanded, setExpanded] = useState(false);
-  const { t } = useLanguage();
-  const shortDesc = (t as Record<string, string>)[project.shortDescKey] ?? "";
-  const fullDesc = (t as Record<string, string>)[project.fullDescKey] ?? "";
+  const { t, language } = useLanguage();
+  const shortDesc =
+    language === "es"
+      ? project.short_description_es
+      : project.short_description_en;
+  const fullDesc =
+    language === "es" ? project.long_description_es : project.long_description_en;
+
+  const typeLabel: Record<ProjectType, string> =
+    language === "es"
+      ? {
+          app: "Aplicación",
+          website: "Sitio web",
+          "3d": "3D",
+          system: "Sistema",
+          video: "Video",
+        }
+      : {
+          app: "App",
+          website: "Website",
+          "3d": "3D",
+          system: "System",
+          video: "Video",
+        };
+
+  const statsItems = [
+    project.stats?.rating
+      ? { label: t.rating, value: `${project.stats.rating} ★` }
+      : null,
+    project.stats?.reviews
+      ? {
+          label: language === "es" ? "Reseñas" : "Reviews",
+          value: project.stats.reviews,
+        }
+      : null,
+    project.stats?.downloads
+      ? { label: t.downloads, value: project.stats.downloads }
+      : null,
+    project.stats?.content_rating
+      ? { label: t.content, value: project.stats.content_rating }
+      : null,
+  ].filter(
+    (
+      item,
+    ): item is {
+      label: string;
+      value: string;
+    } => item !== null,
+  );
 
   return (
     <div
@@ -324,9 +602,9 @@ function AppProjectCard({ project }: { project: AppProject }) {
       <div className="flex gap-3 items-start">
         <div className="w-[52px] flex-shrink-0 flex items-center justify-center">
           <img
-            src={project.icon}
-            alt={project.name}
-            className="w-[52px] h-[52px] rounded-[14px] object-cover"
+            src={project.main_image}
+            alt={project.title}
+            className={`w-[52px] h-[52px] rounded-[14px] ${project.type === "app" ? "object-cover" : "object-contain bg-white p-1"}`}
             style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }}
           />
         </div>
@@ -334,10 +612,10 @@ function AppProjectCard({ project }: { project: AppProject }) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
-                App
+                {typeLabel[project.type]}
               </span>
               <h3 className="text-base font-semibold text-gray-900 font-dm-sans leading-tight">
-                {project.name}
+                {project.title}
               </h3>
             </div>
             <button
@@ -352,7 +630,7 @@ function AppProjectCard({ project }: { project: AppProject }) {
                   : "group-hover:underline hover:underline"
               }`}
             >
-              {expanded ? t.seeLess : t.seeMore}
+            {expanded ? t.seeLess : t.seeMore}
             </button>
           </div>
           <p className="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">
@@ -372,142 +650,49 @@ function AppProjectCard({ project }: { project: AppProject }) {
           >
             <p className="text-sm text-gray-600 leading-relaxed">{fullDesc}</p>
 
-            <div className="flex justify-around border-t border-b border-gray-100 py-4 my-2">
-              <div className="text-center">
-                <div className="text-sm font-semibold text-gray-900">
-                  {project.rating} ★
-                </div>
-                <div className="text-[10px] text-gray-400 mt-0.5">
-                  {t.rating}
-                </div>
+            {project.link && (
+              <div>
+                <a
+                  href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-900 underline break-all"
+                >
+                  {project.link}
+                </a>
               </div>
-              <div className="w-px bg-gray-200" />
-              <div className="text-center">
-                <div className="text-sm font-semibold text-gray-900">
-                  {project.downloads}
-                </div>
-                <div className="text-[10px] text-gray-400 mt-0.5">
-                  {t.downloads}
-                </div>
+            )}
+
+            {statsItems.length > 0 && (
+              <div className="flex justify-around border-t border-b border-gray-100 py-4 my-2">
+                {statsItems.map((item, index) => (
+                  <React.Fragment key={item.label}>
+                    <div className="text-center">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {item.value}
+                      </div>
+                      <div className="text-[10px] text-gray-400 mt-0.5">
+                        {item.label}
+                      </div>
+                    </div>
+                    {index < statsItems.length - 1 && (
+                      <div className="w-px bg-gray-200" />
+                    )}
+                  </React.Fragment>
+                ))}
               </div>
-              <div className="w-px bg-gray-200" />
-              <div className="text-center">
-                <div className="text-sm font-semibold text-gray-900">
-                  {project.contentRating}
-                </div>
-                <div className="text-[10px] text-gray-400 mt-0.5">
-                  {t.content}
-                </div>
-              </div>
-            </div>
+            )}
 
             <div
               className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
               style={{ scrollSnapType: "x mandatory" }}
             >
-              {project.screenshots.map((src, i) => (
+              {project.children_images.map((src, i) => (
                 <ScreenshotImage
                   key={i}
                   src={src}
-                  alt={`${project.name} screenshot ${i + 1}`}
-                  className={`h-[280px] w-auto rounded-xl object-cover bg-gray-100${i === 0 ? " ml-3 md:ml-4" : ""}${i === project.screenshots.length - 1 ? " mr-3 md:mr-4" : ""}`}
-                  viewLabel={t.view}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function WebProjectCard({ project }: { project: WebProject }) {
-  const [expanded, setExpanded] = useState(false);
-  const { t } = useLanguage();
-  const shortDesc = (t as Record<string, string>)[project.shortDescKey] ?? "";
-  const fullDesc = (t as Record<string, string>)[project.fullDescKey] ?? "";
-
-  return (
-    <div
-      className={`group bg-white rounded-2xl p-3 md:p-5 border border-[#801818]/10 shadow-sm transition-all duration-300 ${
-        expanded ? "cursor-default" : "cursor-pointer hover:shadow-md"
-      }`}
-      onClick={() => {
-        if (!expanded) setExpanded(true);
-      }}
-    >
-      <div className="flex gap-3 items-start">
-        <div className="w-[52px] flex-shrink-0 flex items-center justify-center pt-1">
-          <img
-            src={project.logo}
-            alt={project.name}
-            className="h-8 w-auto max-w-[52px] object-contain"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
-                Website
-              </span>
-              <h3 className="text-base font-semibold text-gray-900 font-dm-sans leading-tight">
-                {project.name}
-              </h3>
-            </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded(!expanded);
-              }}
-              className={`text-sm font-semibold text-[#801818] flex-shrink-0 mt-1 underline-offset-2 ${
-                expanded
-                  ? "hover:underline"
-                  : "group-hover:underline hover:underline"
-              }`}
-            >
-              {expanded ? t.seeLess : t.seeMore}
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">
-            {shortDesc}
-          </p>
-        </div>
-      </div>
-
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            initial={{ opacity: 0, y: -18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -18 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="space-y-4 mt-3"
-          >
-            <div>
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-gray-900 underline break-all"
-              >
-                {project.url}
-              </a>
-            </div>
-
-            <p className="text-sm text-gray-600 leading-relaxed">{fullDesc}</p>
-
-            <div
-              className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
-              style={{ scrollSnapType: "x mandatory" }}
-            >
-              {project.screenshots.map((src, i) => (
-                <ScreenshotImage
-                  key={i}
-                  src={src}
-                  alt={`${project.name} screenshot ${i + 1}`}
-                  className={`h-[180px] md:h-[240px] w-auto rounded-xl object-contain bg-gray-100${i === 0 ? " ml-3 md:ml-4" : ""}${i === project.screenshots.length - 1 ? " mr-3 md:mr-4" : ""}`}
+                  alt={`${project.title} screenshot ${i + 1}`}
+                  className={`h-[220px] md:h-[260px] w-auto rounded-xl object-cover bg-gray-100${i === 0 ? " ml-3 md:ml-4" : ""}${i === project.children_images.length - 1 ? " mr-3 md:mr-4" : ""}`}
                   viewLabel={t.view}
                 />
               ))}
@@ -528,13 +713,9 @@ function ProjectsContent() {
         {t.projectsIntro}
       </p>
 
-      {PROJECTS.map((project, i) =>
-        project.kind === "app" ? (
-          <AppProjectCard key={i} project={project} />
-        ) : (
-          <WebProjectCard key={i} project={project} />
-        ),
-      )}
+      {PROJECTS.map((project) => (
+        <ProjectCard key={project.title} project={project} />
+      ))}
     </div>
   );
 }
