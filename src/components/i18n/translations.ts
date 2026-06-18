@@ -1,8 +1,9 @@
 export const translations = {
   en: {
-    headline: "Building the future, one line at a time",
-    subtitle:
-      "We like technology and design to be visually powerful, intellectually elegant, and above all timeless.",
+    eyebrow: "The first AI implementer in Costa Rica",
+    headline: "a brain that never sleeps… powered by artificial intelligence",
+    subtitle: "We help you integrate AI into your business.",
+    explore: "Explore",
     who: "Who are we?",
     whoLabel1: "Who",
     whoLabel2: "are we?",
@@ -99,9 +100,10 @@ export const translations = {
     contactSend: "Send Message",
   },
   es: {
-    headline: "Construyendo el futuro, una línea a la vez",
-    subtitle:
-      "Nos gusta que la tecnología y el diseño sean visualmente poderosos, intelectualmente elegantes y, sobre todo, atemporales.",
+    eyebrow: "El primer implementador de IA en Costa Rica",
+    headline: "un cerebro que nunca duerme… con inteligencia artificial",
+    subtitle: "Te ayudamos a integrar la IA en tu negocio.",
+    explore: "Explorar",
     who: "¿Quiénes somos?",
     whoLabel1: "¿Quiénes",
     whoLabel2: "somos?",

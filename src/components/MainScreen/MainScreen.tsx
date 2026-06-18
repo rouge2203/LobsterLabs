@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { TopBar } from "./TopBar";
 import { HeroSection } from "./HeroSection";
 import { MacViewer, MacViewerSkeleton } from "./MacViewer";
@@ -37,14 +37,10 @@ export function MainScreen() {
   };
 
   return (
-    <div
-      className={`min-h-[100dvh] md:h-screen overflow-hidden bg-white flex flex-col md:flex-row ${
-        isMobile ? "" : "md:overflow-hidden"
-      }`}
-    >
+    <div className="min-h-[100dvh] md:h-screen overflow-hidden bg-black text-white flex flex-col md:block">
       {/* Mobile layout */}
       <div
-        className={`flex flex-col md:hidden ${
+        className={`flex flex-col md:hidden relative ${
           menuOpen
             ? "min-h-[100dvh] overflow-y-auto overscroll-none"
             : "h-[100dvh] overflow-hidden"
@@ -75,7 +71,8 @@ export function MainScreen() {
           <div className="flex-shrink-0">
             <HeroSection />
           </div>
-          <div className="flex-1 min-h-0 flex items-center justify-center">
+          <div className="relative flex-1 min-h-0 flex items-center justify-center">
+            <div className="absolute w-[80vw] h-[80vw] max-w-[420px] max-h-[420px] noir-glow blur-2xl animate-noir-pulse pointer-events-none" />
             <MacViewerErrorBoundary fallback={<MacViewerSkeleton />}>
               <SuspenseMacViewer mobile />
             </MacViewerErrorBoundary>
@@ -92,53 +89,61 @@ export function MainScreen() {
 
       {/* Desktop layout - hidden on mobile to avoid duplicate WebGL contexts */}
       {!isMobile && (
-        <div
-          className={`flex flex-col min-h-screen relative bg-white flex-1 ${
-            menuOpen ? "overflow-y-auto" : "overflow-hidden h-screen"
-          }`}
-        >
-          {!menuOpen && (
-            <TopBar
-              desktop
-              onMenuClick={() => {
-                handleCloseDialog();
-                setMenuOpen(true);
-              }}
-              onLogoClick={handleCloseDialog}
-              dialogOpen={dialogOpen}
-            />
-          )}
-          <HamburgerMenu
-            open={menuOpen}
-            onClose={() => setMenuOpen(false)}
-            onNavClick={(id) => {
-              setDialogType(id);
-              setDialogOpen(true);
-            }}
-            onContactClick={() => handleCardClick("contact")}
-            mobile={false}
-          />
-          <div
-            className={`flex flex-1 min-h-0 ${
-              menuOpen ? "min-h-[100vh]" : ""
-            }`}
-          >
-            <div className="flex-1 flex flex-col justify-center pl-20 pr-32">
-              <div className="mt-0">
+        <div className="relative hidden md:block h-screen overflow-hidden bg-black noir-grain">
+          {/* Background atmosphere */}
+          <div className="absolute inset-0 z-0 noir-lines" />
+          <div className="absolute right-[6%] top-1/2 -translate-y-1/2 w-[52vw] h-[52vw] max-w-[800px] max-h-[800px] z-0 noir-glow blur-3xl animate-noir-pulse pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 z-0 flex justify-center overflow-hidden pointer-events-none select-none">
+            <span className="font-bricolage font-extrabold leading-none noir-watermark text-[24vw] translate-y-[20%] whitespace-nowrap">
+              lobster
+            </span>
+          </div>
+
+          {/* Brain model as a floating backdrop (non-interactive so the UI stays clickable) */}
+          <div className="absolute right-0 top-0 h-full w-[62%] z-[1] pointer-events-none animate-noir-float">
+            <MacViewerErrorBoundary fallback={<MacViewerSkeleton />}>
+              <div className="w-full h-full flex items-center justify-center">
+                <SuspenseMacViewer desktop />
+              </div>
+            </MacViewerErrorBoundary>
+          </div>
+
+          {/* Foreground content */}
+          <div className="relative z-10 flex h-full flex-col">
+            {!menuOpen && (
+              <TopBar
+                desktop
+                onMenuClick={() => {
+                  handleCloseDialog();
+                  setMenuOpen(true);
+                }}
+                onLogoClick={handleCloseDialog}
+                dialogOpen={dialogOpen}
+              />
+            )}
+            <div className="flex flex-1 items-center">
+              <div className="pl-12 lg:pl-20 pr-8 w-full max-w-[600px]">
                 <HeroSection desktop />
                 <NavigationCards onCardClick={handleCardClick} desktop />
                 <CTAButton desktop onClick={() => handleCardClick("contact")} />
               </div>
             </div>
+          </div>
 
-            <div className="flex-1 flex items-center justify-center relative min-w-0 overflow-hidden bg-white before:content-[''] before:absolute before:right-0 before:top-0 before:bottom-0 before:w-24 before:bg-gradient-to-l before:from-gray-100/25 before:to-transparent before:pointer-events-none">
-              <MacViewerErrorBoundary fallback={<MacViewerSkeleton />}>
-                <div className="w-full h-full min-h-[70vh] flex items-center justify-center -mt-8">
-                  <SuspenseMacViewer desktop />
-                </div>
-              </MacViewerErrorBoundary>
-              <DesktopDecorations />
-            </div>
+          <DesktopDecorations />
+
+          {/* Menu overlays from the top, preserving its dropdown behavior */}
+          <div className="absolute inset-x-0 top-0 z-[60]">
+            <HamburgerMenu
+              open={menuOpen}
+              onClose={() => setMenuOpen(false)}
+              onNavClick={(id) => {
+                setDialogType(id);
+                setDialogOpen(true);
+              }}
+              onContactClick={() => handleCardClick("contact")}
+              mobile={false}
+            />
           </div>
         </div>
       )}

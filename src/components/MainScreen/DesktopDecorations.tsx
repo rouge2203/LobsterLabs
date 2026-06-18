@@ -1,22 +1,30 @@
+import { useLanguage } from "../i18n/LanguageContext";
+
 export function DesktopDecorations() {
+  const { t } = useLanguage();
+
   return (
     <>
-      <div
-        className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
-        style={{ color: "#ccc" }}
-      >
-        <span className="text-[10px] font-mono">01</span>
-        <div className="w-px h-24 bg-gray-300" />
-        <span className="text-[10px] font-mono">03</span>
+      {/* Bottom-left technical stamp (à la "UI / UX — 2017.") */}
+      <div className="absolute left-10 bottom-8 z-20 font-mono text-[10px] uppercase tracking-[0.24em] text-white/35">
+        AI / Automation — CR 2026.
       </div>
-      <div
-        className="absolute right-8 bottom-8 flex gap-6 text-[11px] font-inter tracking-[2px] text-gray-500"
-      >
+
+      {/* Center-bottom scroll indicator */}
+      <div className="absolute left-1/2 bottom-7 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
+        <span className="text-white/40 text-base animate-noir-bob">↓</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/55">
+          {t.explore}
+        </span>
+      </div>
+
+      {/* Bottom-right socials */}
+      <div className="absolute right-10 bottom-8 z-20 flex gap-6 font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
         <a
           href="https://www.linkedin.com/in/alejandro-ruiz-a5622a278/"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-gray-900 transition-colors"
+          className="hover:text-white transition-colors"
         >
           LinkedIn
         </a>
@@ -24,7 +32,7 @@ export function DesktopDecorations() {
           href="https://github.com/rouge2203"
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-gray-900 transition-colors"
+          className="hover:text-white transition-colors"
         >
           GitHub
         </a>

@@ -5,7 +5,7 @@ import { MainScreen } from "../components/MainScreen/MainScreen";
 const Home = () => {
   return (
     <LanguageProvider>
-      <div className="flex flex-col min-h-screen bg-white">
+      <div className="flex flex-col min-h-screen bg-black">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

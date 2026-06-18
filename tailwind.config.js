@@ -19,17 +19,25 @@ module.exports = {
       colors: {
         lobsterRed: "#f23029",
         lobsterRed2: "#d32e2a",
+        noir: "#050505",
+        accent: "#801818",
+        accentBright: "#c0392b",
       },
       fontFamily: {
         geomanist: ["geomanistregular", ...defaultTheme.fontFamily.sans],
         varien: ["varien, sans-serif"],
         varienoutline: ["varienoutline, sans-serif"],
         inter: ["Inter", "sans-serif"],
+        bricolage: ["'Bricolage Grotesque'", ...defaultTheme.fontFamily.sans],
+        mono: ["'JetBrains Mono'", ...defaultTheme.fontFamily.mono],
         "dm-sans": ["DM Sans", "sans-serif"],
         "dm-serif": ["DM Serif Display", "serif"],
       },
       animation: {
         aurora: "aurora 60s linear infinite",
+        "noir-float": "noir-float 9s ease-in-out infinite",
+        "noir-pulse": "noir-pulse 4s ease-in-out infinite",
+        "noir-bob": "noir-bob 2.4s ease-in-out infinite",
       },
       keyframes: {
         aurora: {
@@ -39,6 +47,18 @@ module.exports = {
           to: {
             backgroundPosition: "350% 50%, 350% 50%",
           },
+        },
+        "noir-float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-14px)" },
+        },
+        "noir-pulse": {
+          "0%, 100%": { opacity: "0.55" },
+          "50%": { opacity: "0.85" },
+        },
+        "noir-bob": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(6px)" },
         },
       },
     },
